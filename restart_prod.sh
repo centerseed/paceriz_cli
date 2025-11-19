@@ -4,10 +4,21 @@ echo "🚀 啟動生產環境後端 (paceriz-prod) on Port 8081..."
 echo ""
 
 # 停止之前的 prod backend（如果有）
-pkill -f "PORT=8081 python app.py"
+echo "🛑 停止舊的後端進程..."
+pkill -f "python.*app.py"
 
 # 等待進程完全停止
-sleep 1
+sleep 2
+
+# 檢查是否還有進程在運行
+if pgrep -f "python.*app.py" > /dev/null; then
+    echo "⚠️  還有進程在運行，強制終止..."
+    pkill -9 -f "python.*app.py"
+    sleep 1
+fi
+
+# 清空舊的日誌文件
+echo "" > /tmp/subscription_backend_prod.log
 
 # 確保使用 prod 環境
 export GOOGLE_CLOUD_PROJECT=paceriz-prod
