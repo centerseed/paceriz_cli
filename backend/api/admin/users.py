@@ -440,11 +440,9 @@ def get_user_readiness(uid: str):
         else:
             target_date = datetime.now()
 
-        # 構建文檔 ID
-        doc_id = f"{uid}_{target_date.strftime('%Y-%m-%d')}"
-
-        # 查詢 training_readiness_cache
-        readiness_ref = db.collection('training_readiness_cache').document(doc_id)
+        # 查詢 users/{uid}/training_readiness/{date} subcollection
+        date_doc_id = target_date.strftime('%Y-%m-%d')
+        readiness_ref = db.collection('users').document(uid).collection('training_readiness').document(date_doc_id)
         readiness_doc = readiness_ref.get()
 
         if not readiness_doc.exists:
@@ -453,13 +451,12 @@ def get_user_readiness(uid: str):
             end_date = target_date
             start_date = target_date - timedelta(days=7)
 
-            start_doc_id = f"{uid}_{start_date.strftime('%Y-%m-%d')}"
-            end_doc_id = f"{uid}_{end_date.strftime('%Y-%m-%d')}"
-
-            recent_docs = (db.collection('training_readiness_cache')
-                          .where('__name__', '>=', start_doc_id)
-                          .where('__name__', '<=', end_doc_id)
-                          .order_by('__name__', direction=firestore.Query.DESCENDING)
+            recent_docs = (db.collection('users')
+                          .document(uid)
+                          .collection('training_readiness')
+                          .where('date', '>=', start_date.strftime('%Y-%m-%d'))
+                          .where('date', '<=', end_date.strftime('%Y-%m-%d'))
+                          .order_by('date', direction=firestore.Query.DESCENDING)
                           .limit(1)
                           .stream())
 
@@ -483,7 +480,7 @@ def get_user_readiness(uid: str):
                 }), 200
 
         readiness_data = readiness_doc.to_dict()
-        readiness_data['doc_id'] = doc_id
+        readiness_data['doc_id'] = date_doc_id
 
         return jsonify({
             'readiness': readiness_data,
@@ -523,24 +520,19 @@ def get_user_readiness_history(uid: str):
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
 
-        # 查詢指定時間範圍內的數據
-        start_doc_id = f"{uid}_{start_date.strftime('%Y-%m-%d')}"
-        end_doc_id = f"{uid}_{end_date.strftime('%Y-%m-%d')}"
-
-        history_docs = (db.collection('training_readiness_cache')
-                       .where('__name__', '>=', start_doc_id)
-                       .where('__name__', '<=', end_doc_id)
-                       .order_by('__name__', direction=firestore.Query.ASCENDING)
+        # 查詢 users/{uid}/training_readiness subcollection
+        history_docs = (db.collection('users')
+                       .document(uid)
+                       .collection('training_readiness')
+                       .where('date', '>=', start_date.strftime('%Y-%m-%d'))
+                       .where('date', '<=', end_date.strftime('%Y-%m-%d'))
+                       .order_by('date', direction=firestore.Query.ASCENDING)
                        .stream())
 
         history_data = []
         for doc in history_docs:
             data = doc.to_dict()
             data['doc_id'] = doc.id
-            # 從 doc_id 解析日期
-            date_str = doc.id.split('_', 1)[1] if '_' in doc.id else None
-            if date_str:
-                data['date'] = date_str
             history_data.append(data)
 
         return jsonify({

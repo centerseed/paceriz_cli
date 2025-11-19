@@ -767,93 +767,92 @@ export default function UserDetailPage() {
             <p className="text-sm text-gray-400">尚無個人最佳記錄</p>
           )}
         </div>
-
         {/* 訓練準備度 */}
         <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Heart className="w-5 h-5 text-red-500" />
             訓練準備度
           </h2>
-          {readiness?.metrics ? (
+          {readiness ? (
             <div className="space-y-6">
               {/* 當前準備度指標 */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {/* Speed */}
-                {readiness.metrics.speed && (
+                {readiness.speed && (
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-xs text-gray-600 mb-1">速度</div>
-                    <div className="text-2xl font-bold text-blue-900">{readiness.metrics.speed.score}</div>
-                    {readiness.metrics.speed.trend_data?.direction && (
+                    <div className="text-2xl font-bold text-blue-900">{readiness.speed.score}</div>
+                    {readiness.speed.trend_data?.direction && (
                       <div className={`text-xs mt-1 ${
-                        readiness.metrics.speed.trend_data.direction === 'up' ? 'text-green-600' :
-                        readiness.metrics.speed.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                        readiness.speed.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.speed.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        {readiness.metrics.speed.trend_data.direction === 'up' ? '↑' :
-                         readiness.metrics.speed.trend_data.direction === 'down' ? '↓' : '→'}
+                        {readiness.speed.trend_data.direction === 'up' ? '↑' :
+                         readiness.speed.trend_data.direction === 'down' ? '↓' : '→'}
                       </div>
                     )}
                   </div>
                 )}
                 {/* Endurance */}
-                {readiness.metrics.endurance && (
+                {readiness.endurance && (
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-xs text-gray-600 mb-1">耐力</div>
-                    <div className="text-2xl font-bold text-green-900">{readiness.metrics.endurance.score}</div>
-                    {readiness.metrics.endurance.trend_data?.direction && (
+                    <div className="text-2xl font-bold text-green-900">{readiness.endurance.score}</div>
+                    {readiness.endurance.trend_data?.direction && (
                       <div className={`text-xs mt-1 ${
-                        readiness.metrics.endurance.trend_data.direction === 'up' ? 'text-green-600' :
-                        readiness.metrics.endurance.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                        readiness.endurance.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.endurance.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        {readiness.metrics.endurance.trend_data.direction === 'up' ? '↑' :
-                         readiness.metrics.endurance.trend_data.direction === 'down' ? '↓' : '→'}
+                        {readiness.endurance.trend_data.direction === 'up' ? '↑' :
+                         readiness.endurance.trend_data.direction === 'down' ? '↓' : '→'}
                       </div>
                     )}
                   </div>
                 )}
                 {/* Race Fitness */}
-                {readiness.metrics.race_fitness && (
+                {readiness.race_fitness && (
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
                     <div className="text-xs text-gray-600 mb-1">競賽狀態</div>
-                    <div className="text-2xl font-bold text-purple-900">{readiness.metrics.race_fitness.score}</div>
-                    {readiness.metrics.race_fitness.trend_data?.direction && (
+                    <div className="text-2xl font-bold text-purple-900">{readiness.race_fitness.score}</div>
+                    {readiness.race_fitness.trend_data?.direction && (
                       <div className={`text-xs mt-1 ${
-                        readiness.metrics.race_fitness.trend_data.direction === 'up' ? 'text-green-600' :
-                        readiness.metrics.race_fitness.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                        readiness.race_fitness.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.race_fitness.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        {readiness.metrics.race_fitness.trend_data.direction === 'up' ? '↑' :
-                         readiness.metrics.race_fitness.trend_data.direction === 'down' ? '↓' : '→'}
+                        {readiness.race_fitness.trend_data.direction === 'up' ? '↑' :
+                         readiness.race_fitness.trend_data.direction === 'down' ? '↓' : '→'}
                       </div>
                     )}
                   </div>
                 )}
                 {/* Training Load */}
-                {readiness.metrics.training_load && (
+                {readiness.training_load && (
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
                     <div className="text-xs text-gray-600 mb-1">訓練負荷</div>
-                    <div className="text-2xl font-bold text-orange-900">{readiness.metrics.training_load.score}</div>
-                    {readiness.metrics.training_load.trend_data?.direction && (
+                    <div className="text-2xl font-bold text-orange-900">{readiness.training_load.score}</div>
+                    {readiness.training_load.trend_data?.direction && (
                       <div className={`text-xs mt-1 ${
-                        readiness.metrics.training_load.trend_data.direction === 'up' ? 'text-green-600' :
-                        readiness.metrics.training_load.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                        readiness.training_load.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.training_load.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        {readiness.metrics.training_load.trend_data.direction === 'up' ? '↑' :
-                         readiness.metrics.training_load.trend_data.direction === 'down' ? '↓' : '→'}
+                        {readiness.training_load.trend_data.direction === 'up' ? '↑' :
+                         readiness.training_load.trend_data.direction === 'down' ? '↓' : '→'}
                       </div>
                     )}
                   </div>
                 )}
                 {/* Recovery */}
-                {readiness.metrics.recovery && (
+                {readiness.recovery && (
                   <div className="text-center p-4 bg-pink-50 rounded-lg">
                     <div className="text-xs text-gray-600 mb-1">恢復狀態</div>
-                    <div className="text-2xl font-bold text-pink-900">{readiness.metrics.recovery.score}</div>
-                    {readiness.metrics.recovery.trend_data?.direction && (
+                    <div className="text-2xl font-bold text-pink-900">{readiness.recovery.score}</div>
+                    {readiness.recovery.trend_data?.direction && (
                       <div className={`text-xs mt-1 ${
-                        readiness.metrics.recovery.trend_data.direction === 'up' ? 'text-green-600' :
-                        readiness.metrics.recovery.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                        readiness.recovery.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.recovery.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
                       }`}>
-                        {readiness.metrics.recovery.trend_data.direction === 'up' ? '↑' :
-                         readiness.metrics.recovery.trend_data.direction === 'down' ? '↓' : '→'}
+                        {readiness.recovery.trend_data.direction === 'up' ? '↑' :
+                         readiness.recovery.trend_data.direction === 'down' ? '↓' : '→'}
                       </div>
                     )}
                   </div>
@@ -865,132 +864,31 @@ export default function UserDetailPage() {
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold text-gray-700">28天趨勢</h3>
 
-                  {/* Speed Trend */}
-                  {readiness.metrics.speed?.trend_data?.values && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">速度趨勢</div>
-                      <div className="h-32 flex items-end gap-1">
-                        {readiness.metrics.speed.trend_data.values.map((value: number, index: number) => {
-                          const maxValue = Math.max(...readiness.metrics.speed.trend_data.values);
-                          const height = (value / maxValue) * 100;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
-                              <div
-                                className="bg-blue-400 rounded-t"
-                                style={{ height: `${height}%` }}
-                                title={`${readiness.metrics.speed.trend_data.dates?.[index]}: ${value}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.metrics.speed.trend_data.dates?.[0]}</span>
-                        <span>{readiness.metrics.speed.trend_data.dates?.[readiness.metrics.speed.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Endurance Trend */}
-                  {readiness.metrics.endurance?.trend_data?.values && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">耐力趨勢</div>
-                      <div className="h-32 flex items-end gap-1">
-                        {readiness.metrics.endurance.trend_data.values.map((value: number, index: number) => {
-                          const maxValue = Math.max(...readiness.metrics.endurance.trend_data.values);
-                          const height = (value / maxValue) * 100;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
-                              <div
-                                className="bg-green-400 rounded-t"
-                                style={{ height: `${height}%` }}
-                                title={`${readiness.metrics.endurance.trend_data.dates?.[index]}: ${value}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.metrics.endurance.trend_data.dates?.[0]}</span>
-                        <span>{readiness.metrics.endurance.trend_data.dates?.[readiness.metrics.endurance.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Race Fitness Trend */}
-                  {readiness.metrics.race_fitness?.trend_data?.values && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">競賽狀態趨勢</div>
-                      <div className="h-32 flex items-end gap-1">
-                        {readiness.metrics.race_fitness.trend_data.values.map((value: number, index: number) => {
-                          const maxValue = Math.max(...readiness.metrics.race_fitness.trend_data.values);
-                          const height = (value / maxValue) * 100;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
-                              <div
-                                className="bg-purple-400 rounded-t"
-                                style={{ height: `${height}%` }}
-                                title={`${readiness.metrics.race_fitness.trend_data.dates?.[index]}: ${value}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.metrics.race_fitness.trend_data.dates?.[0]}</span>
-                        <span>{readiness.metrics.race_fitness.trend_data.dates?.[readiness.metrics.race_fitness.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Training Load Trend */}
-                  {readiness.metrics.training_load?.trend_data?.values && (
+                  {readiness.training_load?.trend_data?.values && (
                     <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">訓練負荷趨勢</div>
+                      <div className="text-xs font-medium text-gray-700 mb-2">訓練負荷趨勢 (TSB)</div>
                       <div className="h-32 flex items-end gap-1">
-                        {readiness.metrics.training_load.trend_data.values.map((value: number, index: number) => {
-                          const maxValue = Math.max(...readiness.metrics.training_load.trend_data.values);
-                          const height = (value / maxValue) * 100;
+                        {readiness.training_load.trend_data.values.map((value: number, index: number) => {
+                          const allValues = readiness.training_load.trend_data.values;
+                          const maxValue = Math.max(...allValues);
+                          const minValue = Math.min(...allValues);
+                          const range = maxValue - minValue;
+                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
                           return (
                             <div key={index} className="flex-1 flex flex-col justify-end">
                               <div
                                 className="bg-orange-400 rounded-t"
-                                style={{ height: `${height}%` }}
-                                title={`${readiness.metrics.training_load.trend_data.dates?.[index]}: ${value}`}
+                                style={{ height: `${Math.max(height, 5)}%` }}
+                                title={`${readiness.training_load.trend_data.dates?.[index]}: ${value}`}
                               />
                             </div>
                           );
                         })}
                       </div>
                       <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.metrics.training_load.trend_data.dates?.[0]}</span>
-                        <span>{readiness.metrics.training_load.trend_data.dates?.[readiness.metrics.training_load.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Recovery Trend */}
-                  {readiness.metrics.recovery?.trend_data?.values && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">恢復狀態趨勢</div>
-                      <div className="h-32 flex items-end gap-1">
-                        {readiness.metrics.recovery.trend_data.values.map((value: number, index: number) => {
-                          const maxValue = Math.max(...readiness.metrics.recovery.trend_data.values);
-                          const height = (value / maxValue) * 100;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
-                              <div
-                                className="bg-pink-400 rounded-t"
-                                style={{ height: `${height}%` }}
-                                title={`${readiness.metrics.recovery.trend_data.dates?.[index]}: ${value}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.metrics.recovery.trend_data.dates?.[0]}</span>
-                        <span>{readiness.metrics.recovery.trend_data.dates?.[readiness.metrics.recovery.trend_data.dates.length - 1]}</span>
+                        <span>{readiness.training_load.trend_data.dates?.[0]}</span>
+                        <span>{readiness.training_load.trend_data.dates?.[readiness.training_load.trend_data.dates.length - 1]}</span>
                       </div>
                     </div>
                   )}
@@ -1001,7 +899,6 @@ export default function UserDetailPage() {
             <div className="text-sm text-gray-400">尚無訓練準備度數據</div>
           )}
         </div>
-
         {/* 訂閱測試工具 */}
         <div className="mt-6">
           <SubscriptionTools uid={user.uid} onSuccess={fetchUser} />
