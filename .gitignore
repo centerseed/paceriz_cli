@@ -31,8 +31,12 @@ pnpm-debug.log*
 # Frontend specific
 frontend/dist/
 frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+frontend/.env.development
 frontend/.env.production
-frontend/.env.*.production
+frontend/.env.staging
 
 # Backend specific
 backend/__pycache__/
