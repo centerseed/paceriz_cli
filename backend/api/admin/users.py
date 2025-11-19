@@ -464,7 +464,7 @@ def get_user_readiness(uid: str):
                     rolling_trends = rolling_trends_doc.to_dict()
                     logger.info(f"Found rolling_trends for {uid}")
 
-                    # 只取最近 21 天的數據
+                    # 只取最近 28 天的數據
                     trend_data_dict = {}
                     for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
                         if metric_name in rolling_trends:
@@ -473,10 +473,10 @@ def get_user_readiness(uid: str):
                             values = metric_trend.get('values', [])
                             direction = metric_trend.get('direction', 'stable')
 
-                            # 只取最後 21 天
-                            if len(dates) > 21:
-                                dates = dates[-21:]
-                                values = values[-21:]
+                            # 只取最後 28 天
+                            if len(dates) > 28:
+                                dates = dates[-28:]
+                                values = values[-28:]
 
                             trend_data_dict[metric_name] = {
                                 'dates': dates,
@@ -527,7 +527,7 @@ def get_user_readiness(uid: str):
                     rolling_trends = rolling_trends_doc.to_dict()
                     logger.info(f"Found rolling_trends for {uid} (fallback)")
 
-                    # 只取最近 21 天的數據
+                    # 只取最近 28 天的數據
                     trend_data_dict = {}
                     for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
                         if metric_name in rolling_trends:
@@ -536,10 +536,10 @@ def get_user_readiness(uid: str):
                             values = metric_trend.get('values', [])
                             direction = metric_trend.get('direction', 'stable')
 
-                            # 只取最後 21 天
-                            if len(dates) > 21:
-                                dates = dates[-21:]
-                                values = values[-21:]
+                            # 只取最後 28 天
+                            if len(dates) > 28:
+                                dates = dates[-28:]
+                                values = values[-28:]
 
                             trend_data_dict[metric_name] = {
                                 'dates': dates,

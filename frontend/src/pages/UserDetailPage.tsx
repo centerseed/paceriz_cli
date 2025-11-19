@@ -861,7 +861,7 @@ export default function UserDetailPage() {
 
               {/* 28天趨勢圖表 */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700">趨勢圖表 (21天)</h3>
+                <h3 className="text-sm font-semibold text-gray-700">趨勢圖表 (28天)</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Speed Trend */}
