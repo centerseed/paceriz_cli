@@ -21,9 +21,9 @@ if (missingFields.length > 0) {
   console.error('Missing environment variables:');
   const envPrefix = currentConfig.name === 'Production' ? 'PROD' : 'DEV';
   missingFields.forEach(field => {
-    // Convert camelCase to SNAKE_CASE
+    // Convert camelCase to SNAKE_CASE (e.g., apiKey -> API_KEY)
     const snakeCase = field.replace(/([A-Z])/g, '_$1').toUpperCase();
-    console.error(`  - VITE_FIREBASE_${envPrefix}${snakeCase}`);
+    console.error(`  - VITE_FIREBASE_${envPrefix}_${snakeCase}`);
   });
   console.error('');
   console.error('Please configure environment variables in frontend/.env.development or frontend/.env.production');
