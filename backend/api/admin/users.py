@@ -455,22 +455,42 @@ def get_user_readiness(uid: str):
             readiness_data['doc_id'] = date_doc_id
             logger.info(f"Found readiness data for {uid} on {date_doc_id}")
 
-            # 注入 trend_data 從 rolling_trends/{uid}
+            # 注入 trend_data 從 readiness_metrics/{uid}/rolling_trends/current
             try:
-                rolling_trends_ref = db.collection('rolling_trends').document(uid)
+                rolling_trends_ref = db.collection('readiness_metrics').document(uid).collection('rolling_trends').document('current')
                 rolling_trends_doc = rolling_trends_ref.get()
 
                 if rolling_trends_doc.exists:
                     rolling_trends = rolling_trends_doc.to_dict()
                     logger.info(f"Found rolling_trends for {uid}")
 
+                    # 只取最近 21 天的數據
+                    trend_data_dict = {}
+                    for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
+                        if metric_name in rolling_trends:
+                            metric_trend = rolling_trends[metric_name]
+                            dates = metric_trend.get('dates', [])
+                            values = metric_trend.get('values', [])
+                            direction = metric_trend.get('direction', 'stable')
+
+                            # 只取最後 21 天
+                            if len(dates) > 21:
+                                dates = dates[-21:]
+                                values = values[-21:]
+
+                            trend_data_dict[metric_name] = {
+                                'dates': dates,
+                                'values': values,
+                                'direction': direction
+                            }
+
                     # 為每個指標注入 trend_data
                     for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
-                        if metric_name in readiness_data and metric_name in rolling_trends:
+                        if metric_name in readiness_data and metric_name in trend_data_dict:
                             # 如果 readiness_data[metric_name] 還沒有 trend_data，注入它
                             if isinstance(readiness_data[metric_name], dict):
                                 if 'trend_data' not in readiness_data[metric_name] or readiness_data[metric_name]['trend_data'] is None:
-                                    readiness_data[metric_name]['trend_data'] = rolling_trends[metric_name]
+                                    readiness_data[metric_name]['trend_data'] = trend_data_dict[metric_name]
                                     logger.info(f"Injected trend_data for {metric_name}")
                 else:
                     logger.warning(f"No rolling_trends found for {uid}")
@@ -498,21 +518,41 @@ def get_user_readiness(uid: str):
             readiness_data['doc_id'] = latest_doc.id
             logger.info(f"Returning data from {latest_doc.id}")
 
-            # 注入 trend_data 從 rolling_trends/{uid}
+            # 注入 trend_data 從 readiness_metrics/{uid}/rolling_trends/current
             try:
-                rolling_trends_ref = db.collection('rolling_trends').document(uid)
+                rolling_trends_ref = db.collection('readiness_metrics').document(uid).collection('rolling_trends').document('current')
                 rolling_trends_doc = rolling_trends_ref.get()
 
                 if rolling_trends_doc.exists:
                     rolling_trends = rolling_trends_doc.to_dict()
                     logger.info(f"Found rolling_trends for {uid} (fallback)")
 
+                    # 只取最近 21 天的數據
+                    trend_data_dict = {}
+                    for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
+                        if metric_name in rolling_trends:
+                            metric_trend = rolling_trends[metric_name]
+                            dates = metric_trend.get('dates', [])
+                            values = metric_trend.get('values', [])
+                            direction = metric_trend.get('direction', 'stable')
+
+                            # 只取最後 21 天
+                            if len(dates) > 21:
+                                dates = dates[-21:]
+                                values = values[-21:]
+
+                            trend_data_dict[metric_name] = {
+                                'dates': dates,
+                                'values': values,
+                                'direction': direction
+                            }
+
                     # 為每個指標注入 trend_data
                     for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
-                        if metric_name in readiness_data and metric_name in rolling_trends:
+                        if metric_name in readiness_data and metric_name in trend_data_dict:
                             if isinstance(readiness_data[metric_name], dict):
                                 if 'trend_data' not in readiness_data[metric_name] or readiness_data[metric_name]['trend_data'] is None:
-                                    readiness_data[metric_name]['trend_data'] = rolling_trends[metric_name]
+                                    readiness_data[metric_name]['trend_data'] = trend_data_dict[metric_name]
                                     logger.info(f"Injected trend_data for {metric_name} (fallback)")
                 else:
                     logger.warning(f"No rolling_trends found for {uid} (fallback)")
