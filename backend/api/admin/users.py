@@ -445,46 +445,41 @@ def get_user_readiness(uid: str):
         readiness_ref = db.collection('users').document(uid).collection('training_readiness').document(date_doc_id)
         readiness_doc = readiness_ref.get()
 
-        if not readiness_doc.exists:
-            # 如果指定日期沒有數據，嘗試查詢最近的數據
-            # 查詢最近 7 天的數據
-            end_date = target_date
-            start_date = target_date - timedelta(days=7)
+        if readiness_doc.exists:
+            readiness_data = readiness_doc.to_dict()
+            readiness_data['doc_id'] = date_doc_id
+            logger.info(f"Found readiness data for {uid} on {date_doc_id}")
+            return jsonify({
+                'readiness': readiness_data,
+                'found_for_date': True
+            }), 200
 
-            recent_docs = (db.collection('users')
+        # 如果當天沒有數據，簡單地列出最近的文檔
+        logger.info(f"No data for {date_doc_id}, fetching recent documents")
+        recent_docs = list(db.collection('users')
                           .document(uid)
                           .collection('training_readiness')
-                          .where('date', '>=', start_date.strftime('%Y-%m-%d'))
-                          .where('date', '<=', end_date.strftime('%Y-%m-%d'))
-                          .order_by('date', direction=firestore.Query.DESCENDING)
-                          .limit(1)
+                          .limit(10)
                           .stream())
 
-            readiness_data = None
-            for doc in recent_docs:
-                readiness_data = doc.to_dict()
-                readiness_data['doc_id'] = doc.id
-                break
+        if recent_docs:
+            # 按文檔 ID (日期) 排序，取最新的
+            recent_docs.sort(key=lambda x: x.id, reverse=True)
+            latest_doc = recent_docs[0]
+            readiness_data = latest_doc.to_dict()
+            readiness_data['doc_id'] = latest_doc.id
+            logger.info(f"Returning data from {latest_doc.id}")
+            return jsonify({
+                'readiness': readiness_data,
+                'found_for_date': False,
+                'message': f'Returned data from {latest_doc.id}'
+            }), 200
 
-            if readiness_data:
-                return jsonify({
-                    'readiness': readiness_data,
-                    'found_for_date': False,
-                    'message': 'Returned most recent data within 7 days'
-                }), 200
-            else:
-                return jsonify({
-                    'readiness': None,
-                    'found_for_date': False,
-                    'message': 'No readiness data found'
-                }), 200
-
-        readiness_data = readiness_doc.to_dict()
-        readiness_data['doc_id'] = date_doc_id
-
+        logger.warning(f"No readiness data found for user {uid}")
         return jsonify({
-            'readiness': readiness_data,
-            'found_for_date': True
+            'readiness': None,
+            'found_for_date': False,
+            'message': 'No readiness data found'
         }), 200
 
     except Exception as e:
@@ -508,29 +503,27 @@ def get_user_readiness_history(uid: str):
         訓練準備度歷史數據列表
     """
     if db is None:
+        logger.error("Database not initialized")
         return jsonify({'error': 'Service not available'}), 503
 
     try:
-        from datetime import timedelta
-
         # 獲取查詢天數
         days = min(int(request.args.get('days', 28)), 90)
+        logger.info(f"Fetching readiness history for user {uid}, days={days}")
 
-        # 計算日期範圍
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
-
-        # 查詢 users/{uid}/training_readiness subcollection
-        history_docs = (db.collection('users')
+        # 簡單地列出所有文檔，避免 where 查詢需要索引的問題
+        all_docs = list(db.collection('users')
                        .document(uid)
                        .collection('training_readiness')
-                       .where('date', '>=', start_date.strftime('%Y-%m-%d'))
-                       .where('date', '<=', end_date.strftime('%Y-%m-%d'))
-                       .order_by('date', direction=firestore.Query.ASCENDING)
                        .stream())
 
+        logger.info(f"Found {len(all_docs)} total readiness documents for user {uid}")
+
+        # 按文檔 ID (日期) 排序，取最近的
+        all_docs.sort(key=lambda x: x.id, reverse=True)
+
         history_data = []
-        for doc in history_docs:
+        for doc in all_docs[:days]:
             data = doc.to_dict()
             data['doc_id'] = doc.id
             history_data.append(data)
@@ -538,11 +531,9 @@ def get_user_readiness_history(uid: str):
         return jsonify({
             'history': history_data,
             'days': days,
-            'count': len(history_data),
-            'start_date': start_date.strftime('%Y-%m-%d'),
-            'end_date': end_date.strftime('%Y-%m-%d')
+            'count': len(history_data)
         }), 200
 
     except Exception as e:
         logger.error(f"Error getting readiness history for user {uid}: {str(e)}", exc_info=True)
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'details': 'Check server logs'}), 500
