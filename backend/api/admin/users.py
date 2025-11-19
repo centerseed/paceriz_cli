@@ -454,6 +454,29 @@ def get_user_readiness(uid: str):
             readiness_data = readiness_doc.to_dict()
             readiness_data['doc_id'] = date_doc_id
             logger.info(f"Found readiness data for {uid} on {date_doc_id}")
+
+            # 注入 trend_data 從 rolling_trends/{uid}
+            try:
+                rolling_trends_ref = db.collection('rolling_trends').document(uid)
+                rolling_trends_doc = rolling_trends_ref.get()
+
+                if rolling_trends_doc.exists:
+                    rolling_trends = rolling_trends_doc.to_dict()
+                    logger.info(f"Found rolling_trends for {uid}")
+
+                    # 為每個指標注入 trend_data
+                    for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
+                        if metric_name in readiness_data and metric_name in rolling_trends:
+                            # 如果 readiness_data[metric_name] 還沒有 trend_data，注入它
+                            if isinstance(readiness_data[metric_name], dict):
+                                if 'trend_data' not in readiness_data[metric_name] or readiness_data[metric_name]['trend_data'] is None:
+                                    readiness_data[metric_name]['trend_data'] = rolling_trends[metric_name]
+                                    logger.info(f"Injected trend_data for {metric_name}")
+                else:
+                    logger.warning(f"No rolling_trends found for {uid}")
+            except Exception as e:
+                logger.error(f"Error reading rolling_trends for {uid}: {e}")
+
             return jsonify({
                 'readiness': readiness_data,
                 'found_for_date': True
@@ -474,6 +497,28 @@ def get_user_readiness(uid: str):
             readiness_data = latest_doc.to_dict()
             readiness_data['doc_id'] = latest_doc.id
             logger.info(f"Returning data from {latest_doc.id}")
+
+            # 注入 trend_data 從 rolling_trends/{uid}
+            try:
+                rolling_trends_ref = db.collection('rolling_trends').document(uid)
+                rolling_trends_doc = rolling_trends_ref.get()
+
+                if rolling_trends_doc.exists:
+                    rolling_trends = rolling_trends_doc.to_dict()
+                    logger.info(f"Found rolling_trends for {uid} (fallback)")
+
+                    # 為每個指標注入 trend_data
+                    for metric_name in ['speed', 'endurance', 'race_fitness', 'training_load', 'recovery']:
+                        if metric_name in readiness_data and metric_name in rolling_trends:
+                            if isinstance(readiness_data[metric_name], dict):
+                                if 'trend_data' not in readiness_data[metric_name] or readiness_data[metric_name]['trend_data'] is None:
+                                    readiness_data[metric_name]['trend_data'] = rolling_trends[metric_name]
+                                    logger.info(f"Injected trend_data for {metric_name} (fallback)")
+                else:
+                    logger.warning(f"No rolling_trends found for {uid} (fallback)")
+            except Exception as e:
+                logger.error(f"Error reading rolling_trends for {uid} (fallback): {e}")
+
             return jsonify({
                 'readiness': readiness_data,
                 'found_for_date': False,
