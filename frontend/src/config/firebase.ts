@@ -19,8 +19,11 @@ const missingFields = requiredFields.filter(field => !firebaseConfig[field as ke
 if (missingFields.length > 0) {
   console.error('❌ Firebase Configuration Error');
   console.error('Missing environment variables:');
+  const envPrefix = currentConfig.name === 'Production' ? 'PROD' : 'DEV';
   missingFields.forEach(field => {
-    console.error(`  - VITE_FIREBASE_${currentConfig.name === 'Production' ? 'PROD' : 'DEV'}_${field.toUpperCase()}`);
+    // Convert camelCase to SNAKE_CASE
+    const snakeCase = field.replace(/([A-Z])/g, '_$1').toUpperCase();
+    console.error(`  - VITE_FIREBASE_${envPrefix}${snakeCase}`);
   });
   console.error('');
   console.error('Please configure environment variables in frontend/.env.development or frontend/.env.production');

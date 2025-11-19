@@ -23,9 +23,18 @@ export interface EnvironmentConfig {
 // 從環境變數讀取 Firebase 配置
 const loadFirebaseConfig = (prefix: string) => {
   const getEnv = (key: string): string => {
-    const value = import.meta.env[`VITE_FIREBASE_${prefix}_${key}`];
+    // Try both formats: SNAKE_CASE and camelCase
+    const snakeCaseKey = `VITE_FIREBASE_${prefix}_${key}`;
+    const camelCaseKey = `VITE_FIREBASE_${prefix}_${key.replace(/_([a-z])/g, (_, c) => c.toUpperCase())}`;
+
+    let value = import.meta.env[snakeCaseKey as keyof typeof import.meta.env];
+
     if (!value) {
-      console.warn(`⚠️  Missing environment variable: VITE_FIREBASE_${prefix}_${key}`);
+      value = import.meta.env[camelCaseKey as keyof typeof import.meta.env];
+    }
+
+    if (!value) {
+      console.warn(`⚠️  Missing environment variable: ${snakeCaseKey} or ${camelCaseKey}`);
     }
     return value || '';
   };
