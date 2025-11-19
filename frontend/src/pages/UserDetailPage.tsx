@@ -860,34 +860,32 @@ export default function UserDetailPage() {
               </div>
 
               {/* 預估完賽成績 */}
-              {readiness.race_fitness?.estimated_race_time && Object.keys(readiness.race_fitness.estimated_race_time).length > 0 && (
+              {readiness.race_fitness?.estimated_race_time && (
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="text-sm font-semibold text-gray-700 mb-4">預估完賽成績</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                    {Object.entries(readiness.race_fitness.estimated_race_time).map(([distance, time]: [string, any]) => {
-                      const formatTime = (seconds: number) => {
-                        const hours = Math.floor(seconds / 3600);
-                        const minutes = Math.floor((seconds % 3600) / 60);
-                        const secs = seconds % 60;
-                        if (hours > 0) {
-                          return `${hours}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-                        }
-                        return `${minutes}:${String(secs).padStart(2, '0')}`;
-                      };
-
-                      const distanceLabel = distance === '5k' ? '5K' :
-                                          distance === '10k' ? '10K' :
-                                          distance === 'half_marathon' ? '半馬' :
-                                          distance === 'marathon' ? '全馬' :
-                                          distance;
-
-                      return (
-                        <div key={distance} className="border border-purple-200 rounded-lg p-3 bg-purple-50">
-                          <div className="text-xs text-purple-600 font-medium mb-1">{distanceLabel}</div>
-                          <div className="text-lg font-bold text-purple-900">{formatTime(time)}</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                      <div className="text-xs text-purple-600 font-medium mb-1">
+                        {readiness.race_fitness.target_distance_km === 21 ? '半馬' :
+                         readiness.race_fitness.target_distance_km === 42.195 ? '全馬' :
+                         readiness.race_fitness.target_distance_km === 5 ? '5K' :
+                         readiness.race_fitness.target_distance_km === 10 ? '10K' :
+                         `${readiness.race_fitness.target_distance_km}K`} - 預估時間
+                      </div>
+                      <div className="text-2xl font-bold text-purple-900">{readiness.race_fitness.estimated_race_time}</div>
+                    </div>
+                    {readiness.race_fitness.target_race_time && (
+                      <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                        <div className="text-xs text-blue-600 font-medium mb-1">
+                          {readiness.race_fitness.target_distance_km === 21 ? '半馬' :
+                           readiness.race_fitness.target_distance_km === 42.195 ? '全馬' :
+                           readiness.race_fitness.target_distance_km === 5 ? '5K' :
+                           readiness.race_fitness.target_distance_km === 10 ? '10K' :
+                           `${readiness.race_fitness.target_distance_km}K`} - 目標時間
                         </div>
-                      );
-                    })}
+                        <div className="text-2xl font-bold text-blue-900">{readiness.race_fitness.target_race_time}</div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
