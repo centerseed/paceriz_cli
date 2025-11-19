@@ -3,7 +3,7 @@
  *
  * 處理路由和認證邏輯
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { setAuthToken } from './services/api';
@@ -18,6 +18,78 @@ import InviteCodeDetailPage from './pages/InviteCodeDetailPage';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
 import IAPTestPage from './pages/IAPTestPage';
+
+// Error Boundary Component
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('❌ Application Error:', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-red-50 flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md">
+            <h1 className="text-xl font-bold text-red-600 mb-4">⚠️ 應用程序錯誤</h1>
+            <div className="bg-red-100 border border-red-300 rounded p-4 mb-4">
+              <p className="text-sm text-red-800 font-mono break-words">
+                {this.state.error?.message || '發生未知錯誤'}
+              </p>
+            </div>
+            <details className="text-sm text-gray-600 mb-4">
+              <summary className="cursor-pointer font-semibold">詳細資訊</summary>
+              <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto max-h-40">
+                {this.state.error?.stack}
+              </pre>
+            </details>
+            <div className="bg-blue-50 border border-blue-300 rounded p-4">
+              <p className="text-sm text-blue-800 mb-2">
+                <strong>可能的原因：</strong>
+              </p>
+              <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
+                <li>Firebase 環境變數未設置</li>
+                <li>環境變數值不正確</li>
+                <li>網路連線問題</li>
+              </ul>
+              <p className="text-sm text-blue-800 mt-2">
+                請檢查瀏覽器控制台 (F12) 的完整錯誤訊息。
+              </p>
+              <p className="text-sm text-blue-800 mt-2">
+                參考 <code className="bg-white px-1">frontend/ENV_SETUP.md</code> 進行設定。
+              </p>
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            >
+              重新載入
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -60,10 +132,11 @@ function AuthTokenUpdater() {
 
 function AppRoutes() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AuthTokenUpdater />
-        <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AuthTokenUpdater />
+          <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
 
@@ -172,8 +245,9 @@ function AppRoutes() {
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
