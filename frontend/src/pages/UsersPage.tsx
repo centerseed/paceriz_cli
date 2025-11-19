@@ -81,6 +81,13 @@ export default function UsersPage() {
     }
   };
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // 按下 Enter 鍵時，直接跳轉到用戶詳情頁
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      navigate(`/users/${searchTerm.trim()}`);
+    }
+  };
+
   if (initialLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -131,9 +138,10 @@ export default function UsersPage() {
           </div>
           <input
             type="text"
-            placeholder="搜索 UID、Email 或用戶名..."
+            placeholder="搜索 UID、Email 或用戶名... (按 Enter 直接跳轉)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
           {searching && (
