@@ -24,19 +24,15 @@ import logging
 import sys
 import os
 
-# 添加 api_service 到 Python path
-API_SERVICE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../api_service'))
-sys.path.insert(0, API_SERVICE_PATH)
-
 try:
     from firebase_admin import firestore
-    from core.infrastructure.firebase_init import init_firebase
+    from utils.firebase_init import init_firebase
 
     # 確保 Firebase 已初始化
     init_firebase()
     db = firestore.client()
-except ImportError as e:
-    logging.warning(f"Could not import Firebase modules: {e}")
+except Exception as e:
+    logging.warning(f"Could not initialize Firebase: {e}")
     db = None
 
 logger = logging.getLogger(__name__)
