@@ -1,0 +1,14 @@
+# ======================================
+# Admin Backend Requirements
+# ======================================
+#
+# 注意：Admin Backend 引用 api_service 的代碼（通過 sys.path）
+# 因此使用相同的 conda 環境（api），不需要重複安裝依賴。
+#
+# 這個文件僅用於 Docker 構建時安裝依賴。
+# 本地開發請使用：conda activate api
+#
+
+# === 所有依賴都引用 api_service 的版本 ===
+# 直接使用 api_service 的 requirements.txt
+# 不需要在這裡重複列出
