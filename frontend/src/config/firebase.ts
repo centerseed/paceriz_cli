@@ -12,13 +12,37 @@ import { getCurrentConfig } from './environments';
 const currentConfig = getCurrentConfig();
 const firebaseConfig = currentConfig.firebase;
 
+// 驗證 Firebase 配置
+const requiredFields = ['apiKey', 'authDomain', 'projectId', 'appId'];
+const missingFields = requiredFields.filter(field => !firebaseConfig[field as keyof typeof firebaseConfig]);
+
+if (missingFields.length > 0) {
+  console.error('❌ Firebase Configuration Error');
+  console.error('Missing environment variables:');
+  missingFields.forEach(field => {
+    console.error(`  - VITE_FIREBASE_${currentConfig.name === 'Production' ? 'PROD' : 'DEV'}_${field.toUpperCase()}`);
+  });
+  console.error('');
+  console.error('Please configure environment variables in frontend/.env.development or frontend/.env.production');
+  console.error('See frontend/ENV_SETUP.md for instructions');
+  console.error('');
+}
+
 console.log(`🔥 Initializing Firebase for environment: ${currentConfig.name}`);
-console.log(`📦 Project ID: ${firebaseConfig.projectId}`);
+console.log(`📦 Project ID: ${firebaseConfig.projectId || '(missing)'}`);
 
 // 初始化 Firebase
-const app = initializeApp(firebaseConfig);
+let app;
+let auth;
 
-// 初始化 Auth
-export const auth = getAuth(app);
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  console.log('✅ Firebase initialized successfully');
+} catch (error) {
+  console.error('❌ Firebase initialization failed:', error);
+  throw error;
+}
 
+export { auth };
 export default app;
