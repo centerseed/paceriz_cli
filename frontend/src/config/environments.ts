@@ -27,10 +27,10 @@ const loadFirebaseConfig = (prefix: string) => {
     const snakeCaseKey = `VITE_FIREBASE_${prefix}_${key}`;
     const camelCaseKey = `VITE_FIREBASE_${prefix}_${key.replace(/_([a-z])/g, (_, c) => c.toUpperCase())}`;
 
-    let value = import.meta.env[snakeCaseKey as keyof typeof import.meta.env];
+    let value = import.meta.env[snakeCaseKey];
 
     if (!value) {
-      value = import.meta.env[camelCaseKey as keyof typeof import.meta.env];
+      value = import.meta.env[camelCaseKey];
     }
 
     if (!value) {
