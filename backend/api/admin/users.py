@@ -407,3 +407,150 @@ def get_user_weekly_summary(uid: str):
     except Exception as e:
         logger.error(f"Error getting weekly summary for user {uid}: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
+
+
+@admin_users_bp.route('/<uid>/readiness', methods=['GET'])
+@require_admin
+def get_user_readiness(uid: str):
+    """
+    獲取用戶最新的訓練準備度
+
+    Args:
+        uid: 用戶 UID
+
+    Query Parameters:
+        date: 可選，指定日期 (YYYY-MM-DD)，默認為今天
+
+    Returns:
+        訓練準備度數據，如果沒有數據則返回 null
+    """
+    if db is None:
+        return jsonify({'error': 'Service not available'}), 503
+
+    try:
+        from datetime import timedelta
+
+        # 獲取日期參數，默認為今天
+        date_str = request.args.get('date')
+        if date_str:
+            try:
+                target_date = datetime.strptime(date_str, '%Y-%m-%d')
+            except ValueError:
+                return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+        else:
+            target_date = datetime.now()
+
+        # 構建文檔 ID
+        doc_id = f"{uid}_{target_date.strftime('%Y-%m-%d')}"
+
+        # 查詢 training_readiness_cache
+        readiness_ref = db.collection('training_readiness_cache').document(doc_id)
+        readiness_doc = readiness_ref.get()
+
+        if not readiness_doc.exists:
+            # 如果指定日期沒有數據，嘗試查詢最近的數據
+            # 查詢最近 7 天的數據
+            end_date = target_date
+            start_date = target_date - timedelta(days=7)
+
+            start_doc_id = f"{uid}_{start_date.strftime('%Y-%m-%d')}"
+            end_doc_id = f"{uid}_{end_date.strftime('%Y-%m-%d')}"
+
+            recent_docs = (db.collection('training_readiness_cache')
+                          .where('__name__', '>=', start_doc_id)
+                          .where('__name__', '<=', end_doc_id)
+                          .order_by('__name__', direction=firestore.Query.DESCENDING)
+                          .limit(1)
+                          .stream())
+
+            readiness_data = None
+            for doc in recent_docs:
+                readiness_data = doc.to_dict()
+                readiness_data['doc_id'] = doc.id
+                break
+
+            if readiness_data:
+                return jsonify({
+                    'readiness': readiness_data,
+                    'found_for_date': False,
+                    'message': 'Returned most recent data within 7 days'
+                }), 200
+            else:
+                return jsonify({
+                    'readiness': None,
+                    'found_for_date': False,
+                    'message': 'No readiness data found'
+                }), 200
+
+        readiness_data = readiness_doc.to_dict()
+        readiness_data['doc_id'] = doc_id
+
+        return jsonify({
+            'readiness': readiness_data,
+            'found_for_date': True
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error getting readiness for user {uid}: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_users_bp.route('/<uid>/readiness/history', methods=['GET'])
+@require_admin
+def get_user_readiness_history(uid: str):
+    """
+    獲取用戶訓練準備度歷史記錄
+
+    Args:
+        uid: 用戶 UID
+
+    Query Parameters:
+        days: 查詢天數，默認 28 天，最大 90 天
+
+    Returns:
+        訓練準備度歷史數據列表
+    """
+    if db is None:
+        return jsonify({'error': 'Service not available'}), 503
+
+    try:
+        from datetime import timedelta
+
+        # 獲取查詢天數
+        days = min(int(request.args.get('days', 28)), 90)
+
+        # 計算日期範圍
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+
+        # 查詢指定時間範圍內的數據
+        start_doc_id = f"{uid}_{start_date.strftime('%Y-%m-%d')}"
+        end_doc_id = f"{uid}_{end_date.strftime('%Y-%m-%d')}"
+
+        history_docs = (db.collection('training_readiness_cache')
+                       .where('__name__', '>=', start_doc_id)
+                       .where('__name__', '<=', end_doc_id)
+                       .order_by('__name__', direction=firestore.Query.ASCENDING)
+                       .stream())
+
+        history_data = []
+        for doc in history_docs:
+            data = doc.to_dict()
+            data['doc_id'] = doc.id
+            # 從 doc_id 解析日期
+            date_str = doc.id.split('_', 1)[1] if '_' in doc.id else None
+            if date_str:
+                data['date'] = date_str
+            history_data.append(data)
+
+        return jsonify({
+            'history': history_data,
+            'days': days,
+            'count': len(history_data),
+            'start_date': start_date.strftime('%Y-%m-%d'),
+            'end_date': end_date.strftime('%Y-%m-%d')
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error getting readiness history for user {uid}: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
