@@ -74,17 +74,53 @@ def list_users():
         # 查詢用戶
         users_ref = db.collection('users')
 
-        # 如果有搜尋條件，先獲取所有用戶再過濾（Firestore 不支援 LIKE 查詢）
+        # 如果有搜尋條件，使用優化的查詢策略
         if search:
             all_users = []
-            for doc in users_ref.stream():
-                user_data = doc.to_dict()
-                user_data['uid'] = doc.id
 
-                # 搜尋 UID 或 email
-                if (search.lower() in doc.id.lower() or
-                    (user_data.get('email', '').lower() and search.lower() in user_data.get('email', '').lower())):
-                    all_users.append(user_data)
+            # 優化策略1: 如果搜尋內容像是完整 UID (長度 > 20)，直接查詢該文檔
+            if len(search) > 20:
+                try:
+                    doc = users_ref.document(search).get()
+                    if doc.exists:
+                        user_data = doc.to_dict()
+                        user_data['uid'] = doc.id
+                        all_users.append(user_data)
+                except Exception as e:
+                    logger.debug(f"Direct UID lookup failed: {e}")
+
+            # 優化策略2: 如果搜尋內容包含 @，可能是 email，使用精確查詢
+            if '@' in search and not all_users:
+                try:
+                    # 嘗試精確匹配 email
+                    email_docs = users_ref.where('email', '==', search.lower()).limit(10).stream()
+                    for doc in email_docs:
+                        user_data = doc.to_dict()
+                        user_data['uid'] = doc.id
+                        all_users.append(user_data)
+                except Exception as e:
+                    logger.debug(f"Email lookup failed: {e}")
+
+            # 優化策略3: 如果上述都沒找到，進行部分匹配 (限制最大讀取數量)
+            if not all_users:
+                # ⚠️ 警告: 部分匹配需要讀取多個文檔
+                # 為了避免讀取所有用戶，我們限制最大讀取數量為500
+                MAX_SEARCH_DOCS = 500
+                logger.warning(f"Performing partial match search (limited to {MAX_SEARCH_DOCS} docs)")
+
+                count = 0
+                for doc in users_ref.limit(MAX_SEARCH_DOCS).stream():
+                    user_data = doc.to_dict()
+                    user_data['uid'] = doc.id
+                    count += 1
+
+                    # 搜尋 UID 或 email (部分匹配)
+                    if (search.lower() in doc.id.lower() or
+                        (user_data.get('email', '').lower() and search.lower() in user_data.get('email', '').lower())):
+                        all_users.append(user_data)
+
+                if count >= MAX_SEARCH_DOCS:
+                    logger.warning(f"Search reached max document limit ({MAX_SEARCH_DOCS}). Results may be incomplete.")
 
             # 分頁
             total = len(all_users)

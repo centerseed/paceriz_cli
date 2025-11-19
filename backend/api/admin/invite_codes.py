@@ -245,8 +245,8 @@ def get_invite_code_usages(code: str):
         if not invite_code:
             return jsonify({'error': 'Invite code not found'}), 404
 
-        # 查詢使用記錄
-        query = db.collection('invite_code_usages').where('code', '==', code.upper()).order_by('used_at', direction=firestore.Query.DESCENDING)
+        # 查詢使用記錄（限制最多返回100筆）
+        query = db.collection('invite_code_usages').where('code', '==', code.upper()).order_by('used_at', direction=firestore.Query.DESCENDING).limit(100)
         docs = query.stream()
 
         usages = []
