@@ -861,14 +861,16 @@ export default function UserDetailPage() {
 
               {/* 28天趨勢圖表 */}
               <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-700">28天趨勢</h3>
+                <h3 className="text-sm font-semibold text-gray-700">趨勢圖表 (21天)</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Speed Trend */}
                   {readiness.speed?.trend_data?.values && readiness.speed.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">速度趨勢</div>
-                      <div className="h-24 flex items-end gap-0.5">
+                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                      <div className="text-xs font-medium text-gray-700 mb-2">
+                        速度趨勢 <span className="text-gray-400">({readiness.speed.trend_data.values.length}天)</span>
+                      </div>
+                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
                         {readiness.speed.trend_data.values.map((value: number, index: number) => {
                           const allValues = readiness.speed.trend_data.values;
                           const maxValue = Math.max(...allValues);
@@ -876,10 +878,10 @@ export default function UserDetailPage() {
                           const range = maxValue - minValue;
                           const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
                           return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
+                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
                               <div
-                                className="bg-blue-400 rounded-t hover:bg-blue-500 transition-colors"
-                                style={{ height: `${Math.max(height, 5)}%` }}
+                                className="bg-blue-500 hover:bg-blue-600 transition-colors w-full"
+                                style={{ height: `${Math.max(height, 10)}%` }}
                                 title={`${readiness.speed.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
                               />
                             </div>
@@ -895,9 +897,11 @@ export default function UserDetailPage() {
 
                   {/* Endurance Trend */}
                   {readiness.endurance?.trend_data?.values && readiness.endurance.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">耐力趨勢</div>
-                      <div className="h-24 flex items-end gap-0.5">
+                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                      <div className="text-xs font-medium text-gray-700 mb-2">
+                        耐力趨勢 <span className="text-gray-400">({readiness.endurance.trend_data.values.length}天)</span>
+                      </div>
+                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
                         {readiness.endurance.trend_data.values.map((value: number, index: number) => {
                           const allValues = readiness.endurance.trend_data.values;
                           const maxValue = Math.max(...allValues);
@@ -905,10 +909,10 @@ export default function UserDetailPage() {
                           const range = maxValue - minValue;
                           const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
                           return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
+                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
                               <div
-                                className="bg-green-400 rounded-t hover:bg-green-500 transition-colors"
-                                style={{ height: `${Math.max(height, 5)}%` }}
+                                className="bg-green-500 hover:bg-green-600 transition-colors w-full"
+                                style={{ height: `${Math.max(height, 10)}%` }}
                                 title={`${readiness.endurance.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
                               />
                             </div>
@@ -924,9 +928,11 @@ export default function UserDetailPage() {
 
                   {/* Race Fitness Trend */}
                   {readiness.race_fitness?.trend_data?.values && readiness.race_fitness.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">競賽狀態趨勢</div>
-                      <div className="h-24 flex items-end gap-0.5">
+                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                      <div className="text-xs font-medium text-gray-700 mb-2">
+                        競賽狀態趨勢 <span className="text-gray-400">({readiness.race_fitness.trend_data.values.length}天)</span>
+                      </div>
+                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
                         {readiness.race_fitness.trend_data.values.map((value: number, index: number) => {
                           const allValues = readiness.race_fitness.trend_data.values;
                           const maxValue = Math.max(...allValues);
@@ -934,10 +940,10 @@ export default function UserDetailPage() {
                           const range = maxValue - minValue;
                           const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
                           return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
+                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
                               <div
-                                className="bg-purple-400 rounded-t hover:bg-purple-500 transition-colors"
-                                style={{ height: `${Math.max(height, 5)}%` }}
+                                className="bg-purple-500 hover:bg-purple-600 transition-colors w-full"
+                                style={{ height: `${Math.max(height, 10)}%` }}
                                 title={`${readiness.race_fitness.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
                               />
                             </div>
@@ -953,9 +959,11 @@ export default function UserDetailPage() {
 
                   {/* Training Load Trend */}
                   {readiness.training_load?.trend_data?.values && readiness.training_load.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">訓練負荷趨勢</div>
-                      <div className="h-24 flex items-end gap-0.5">
+                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                      <div className="text-xs font-medium text-gray-700 mb-2">
+                        訓練負荷趨勢 <span className="text-gray-400">({readiness.training_load.trend_data.values.length}天)</span>
+                      </div>
+                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
                         {readiness.training_load.trend_data.values.map((value: number, index: number) => {
                           const allValues = readiness.training_load.trend_data.values;
                           const maxValue = Math.max(...allValues);
@@ -963,10 +971,10 @@ export default function UserDetailPage() {
                           const range = maxValue - minValue;
                           const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
                           return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
+                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
                               <div
-                                className="bg-orange-400 rounded-t hover:bg-orange-500 transition-colors"
-                                style={{ height: `${Math.max(height, 5)}%` }}
+                                className="bg-orange-500 hover:bg-orange-600 transition-colors w-full"
+                                style={{ height: `${Math.max(height, 10)}%` }}
                                 title={`${readiness.training_load.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
                               />
                             </div>
@@ -982,9 +990,11 @@ export default function UserDetailPage() {
 
                   {/* Recovery Trend */}
                   {readiness.recovery?.trend_data?.values && readiness.recovery.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">恢復狀態趨勢</div>
-                      <div className="h-24 flex items-end gap-0.5">
+                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                      <div className="text-xs font-medium text-gray-700 mb-2">
+                        恢復狀態趨勢 <span className="text-gray-400">({readiness.recovery.trend_data.values.length}天)</span>
+                      </div>
+                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
                         {readiness.recovery.trend_data.values.map((value: number, index: number) => {
                           const allValues = readiness.recovery.trend_data.values;
                           const maxValue = Math.max(...allValues);
@@ -992,10 +1002,10 @@ export default function UserDetailPage() {
                           const range = maxValue - minValue;
                           const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
                           return (
-                            <div key={index} className="flex-1 flex flex-col justify-end">
+                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
                               <div
-                                className="bg-pink-400 rounded-t hover:bg-pink-500 transition-colors"
-                                style={{ height: `${Math.max(height, 5)}%` }}
+                                className="bg-pink-500 hover:bg-pink-600 transition-colors w-full"
+                                style={{ height: `${Math.max(height, 10)}%` }}
                                 title={`${readiness.recovery.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
                               />
                             </div>
