@@ -20,10 +20,21 @@ if (missingFields.length > 0) {
   console.error('❌ Firebase Configuration Error');
   console.error('Missing environment variables:');
   const envPrefix = currentConfig.name === 'Production' ? 'PROD' : 'DEV';
+
+  // Field name mappings
+  const fieldToEnvMap: Record<string, string> = {
+    'apiKey': 'API_KEY',
+    'authDomain': 'AUTH_DOMAIN',
+    'projectId': 'PROJECT_ID',
+    'storageBucket': 'STORAGE_BUCKET',
+    'messagingSenderId': 'MESSAGING_SENDER_ID',
+    'appId': 'APP_ID',
+    'measurementId': 'MEASUREMENT_ID'
+  };
+
   missingFields.forEach(field => {
-    // Convert camelCase to SNAKE_CASE (e.g., apiKey -> API_KEY)
-    const snakeCase = field.replace(/([A-Z])/g, '_$1').toUpperCase();
-    console.error(`  - VITE_FIREBASE_${envPrefix}_${snakeCase}`);
+    const envName = fieldToEnvMap[field] || field.toUpperCase();
+    console.error(`  - VITE_FIREBASE_${envPrefix}_${envName}`);
   });
   console.error('');
   console.error('Please configure environment variables in frontend/.env.development or frontend/.env.production');
