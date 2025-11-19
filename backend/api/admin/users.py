@@ -420,7 +420,10 @@ def get_user_readiness(uid: str):
     Returns:
         訓練準備度數據，如果沒有數據則返回 null
     """
+    logger.info(f"========== GET READINESS REQUEST for uid={uid} ==========")
+
     if db is None:
+        logger.error("Database not initialized")
         return jsonify({'error': 'Service not available'}), 503
 
     try:
@@ -432,14 +435,20 @@ def get_user_readiness(uid: str):
             try:
                 target_date = datetime.strptime(date_str, '%Y-%m-%d')
             except ValueError:
+                logger.error(f"Invalid date format: {date_str}")
                 return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
         else:
             target_date = datetime.now()
 
+        logger.info(f"Target date: {target_date.strftime('%Y-%m-%d')}")
+
         # 查詢 users/{uid}/training_readiness/{date} subcollection
         date_doc_id = target_date.strftime('%Y-%m-%d')
+        logger.info(f"Querying document: users/{uid}/training_readiness/{date_doc_id}")
+
         readiness_ref = db.collection('users').document(uid).collection('training_readiness').document(date_doc_id)
         readiness_doc = readiness_ref.get()
+        logger.info(f"Document exists: {readiness_doc.exists}")
 
         if readiness_doc.exists:
             readiness_data = readiness_doc.to_dict()
