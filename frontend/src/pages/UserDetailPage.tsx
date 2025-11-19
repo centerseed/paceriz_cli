@@ -865,159 +865,199 @@ export default function UserDetailPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Speed Trend */}
-                  {readiness.speed?.trend_data?.values && readiness.speed.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                      <div className="text-xs font-medium text-gray-700 mb-2">
-                        速度趨勢 <span className="text-gray-400">({readiness.speed.trend_data.values.length}天)</span>
+                  {readiness.speed?.trend_data?.values && readiness.speed.trend_data.values.length > 0 && (() => {
+                    const values = readiness.speed.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          速度趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#3b82f6" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#3b82f6">
+                              <title>{`${readiness.speed.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.speed.trend_data.dates?.[0]}</span>
+                          <span>{readiness.speed.trend_data.dates?.[readiness.speed.trend_data.dates.length - 1]}</span>
+                        </div>
                       </div>
-                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
-                        {readiness.speed.trend_data.values.map((value: number, index: number) => {
-                          const allValues = readiness.speed.trend_data.values;
-                          const maxValue = Math.max(...allValues);
-                          const minValue = Math.min(...allValues);
-                          const range = maxValue - minValue;
-                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
-                              <div
-                                className="bg-blue-500 hover:bg-blue-600 transition-colors w-full"
-                                style={{ height: `${Math.max(height, 10)}%` }}
-                                title={`${readiness.speed.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.speed.trend_data.dates?.[0]}</span>
-                        <span>{readiness.speed.trend_data.dates?.[readiness.speed.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Endurance Trend */}
-                  {readiness.endurance?.trend_data?.values && readiness.endurance.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                      <div className="text-xs font-medium text-gray-700 mb-2">
-                        耐力趨勢 <span className="text-gray-400">({readiness.endurance.trend_data.values.length}天)</span>
+                  {readiness.endurance?.trend_data?.values && readiness.endurance.trend_data.values.length > 0 && (() => {
+                    const values = readiness.endurance.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          耐力趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#22c55e" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#22c55e">
+                              <title>{`${readiness.endurance.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.endurance.trend_data.dates?.[0]}</span>
+                          <span>{readiness.endurance.trend_data.dates?.[readiness.endurance.trend_data.dates.length - 1]}</span>
+                        </div>
                       </div>
-                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
-                        {readiness.endurance.trend_data.values.map((value: number, index: number) => {
-                          const allValues = readiness.endurance.trend_data.values;
-                          const maxValue = Math.max(...allValues);
-                          const minValue = Math.min(...allValues);
-                          const range = maxValue - minValue;
-                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
-                              <div
-                                className="bg-green-500 hover:bg-green-600 transition-colors w-full"
-                                style={{ height: `${Math.max(height, 10)}%` }}
-                                title={`${readiness.endurance.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.endurance.trend_data.dates?.[0]}</span>
-                        <span>{readiness.endurance.trend_data.dates?.[readiness.endurance.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Race Fitness Trend */}
-                  {readiness.race_fitness?.trend_data?.values && readiness.race_fitness.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                      <div className="text-xs font-medium text-gray-700 mb-2">
-                        競賽狀態趨勢 <span className="text-gray-400">({readiness.race_fitness.trend_data.values.length}天)</span>
+                  {readiness.race_fitness?.trend_data?.values && readiness.race_fitness.trend_data.values.length > 0 && (() => {
+                    const values = readiness.race_fitness.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          競賽狀態趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#a855f7" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#a855f7">
+                              <title>{`${readiness.race_fitness.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.race_fitness.trend_data.dates?.[0]}</span>
+                          <span>{readiness.race_fitness.trend_data.dates?.[readiness.race_fitness.trend_data.dates.length - 1]}</span>
+                        </div>
                       </div>
-                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
-                        {readiness.race_fitness.trend_data.values.map((value: number, index: number) => {
-                          const allValues = readiness.race_fitness.trend_data.values;
-                          const maxValue = Math.max(...allValues);
-                          const minValue = Math.min(...allValues);
-                          const range = maxValue - minValue;
-                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
-                              <div
-                                className="bg-purple-500 hover:bg-purple-600 transition-colors w-full"
-                                style={{ height: `${Math.max(height, 10)}%` }}
-                                title={`${readiness.race_fitness.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.race_fitness.trend_data.dates?.[0]}</span>
-                        <span>{readiness.race_fitness.trend_data.dates?.[readiness.race_fitness.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Training Load Trend */}
-                  {readiness.training_load?.trend_data?.values && readiness.training_load.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                      <div className="text-xs font-medium text-gray-700 mb-2">
-                        訓練負荷趨勢 <span className="text-gray-400">({readiness.training_load.trend_data.values.length}天)</span>
+                  {readiness.training_load?.trend_data?.values && readiness.training_load.trend_data.values.length > 0 && (() => {
+                    const values = readiness.training_load.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          訓練負荷趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#f97316" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#f97316">
+                              <title>{`${readiness.training_load.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.training_load.trend_data.dates?.[0]}</span>
+                          <span>{readiness.training_load.trend_data.dates?.[readiness.training_load.trend_data.dates.length - 1]}</span>
+                        </div>
                       </div>
-                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
-                        {readiness.training_load.trend_data.values.map((value: number, index: number) => {
-                          const allValues = readiness.training_load.trend_data.values;
-                          const maxValue = Math.max(...allValues);
-                          const minValue = Math.min(...allValues);
-                          const range = maxValue - minValue;
-                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
-                              <div
-                                className="bg-orange-500 hover:bg-orange-600 transition-colors w-full"
-                                style={{ height: `${Math.max(height, 10)}%` }}
-                                title={`${readiness.training_load.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.training_load.trend_data.dates?.[0]}</span>
-                        <span>{readiness.training_load.trend_data.dates?.[readiness.training_load.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Recovery Trend */}
-                  {readiness.recovery?.trend_data?.values && readiness.recovery.trend_data.values.length > 0 && (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-white">
-                      <div className="text-xs font-medium text-gray-700 mb-2">
-                        恢復狀態趨勢 <span className="text-gray-400">({readiness.recovery.trend_data.values.length}天)</span>
+                  {readiness.recovery?.trend_data?.values && readiness.recovery.trend_data.values.length > 0 && (() => {
+                    const values = readiness.recovery.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          恢復狀態趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#ec4899" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#ec4899">
+                              <title>{`${readiness.recovery.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.recovery.trend_data.dates?.[0]}</span>
+                          <span>{readiness.recovery.trend_data.dates?.[readiness.recovery.trend_data.dates.length - 1]}</span>
+                        </div>
                       </div>
-                      <div className="h-32 flex items-end gap-px bg-gray-50 rounded">
-                        {readiness.recovery.trend_data.values.map((value: number, index: number) => {
-                          const allValues = readiness.recovery.trend_data.values;
-                          const maxValue = Math.max(...allValues);
-                          const minValue = Math.min(...allValues);
-                          const range = maxValue - minValue;
-                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
-                          return (
-                            <div key={index} className="flex-1 flex flex-col justify-end min-w-0">
-                              <div
-                                className="bg-pink-500 hover:bg-pink-600 transition-colors w-full"
-                                style={{ height: `${Math.max(height, 10)}%` }}
-                                title={`${readiness.recovery.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
-                        <span>{readiness.recovery.trend_data.dates?.[0]}</span>
-                        <span>{readiness.recovery.trend_data.dates?.[readiness.recovery.trend_data.dates.length - 1]}</span>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
             </div>
