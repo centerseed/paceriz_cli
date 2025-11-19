@@ -860,15 +860,102 @@ export default function UserDetailPage() {
               </div>
 
               {/* 28天趨勢圖表 */}
-              {readinessHistory && readinessHistory.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-700">28天趨勢</h3>
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">28天趨勢</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Speed Trend */}
+                  {readiness.speed?.trend_data?.values && readiness.speed.trend_data.values.length > 0 && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="text-xs font-medium text-gray-700 mb-2">速度趨勢</div>
+                      <div className="h-24 flex items-end gap-0.5">
+                        {readiness.speed.trend_data.values.map((value: number, index: number) => {
+                          const allValues = readiness.speed.trend_data.values;
+                          const maxValue = Math.max(...allValues);
+                          const minValue = Math.min(...allValues);
+                          const range = maxValue - minValue;
+                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
+                          return (
+                            <div key={index} className="flex-1 flex flex-col justify-end">
+                              <div
+                                className="bg-blue-400 rounded-t hover:bg-blue-500 transition-colors"
+                                style={{ height: `${Math.max(height, 5)}%` }}
+                                title={`${readiness.speed.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                        <span>{readiness.speed.trend_data.dates?.[0]}</span>
+                        <span>{readiness.speed.trend_data.dates?.[readiness.speed.trend_data.dates.length - 1]}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Endurance Trend */}
+                  {readiness.endurance?.trend_data?.values && readiness.endurance.trend_data.values.length > 0 && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="text-xs font-medium text-gray-700 mb-2">耐力趨勢</div>
+                      <div className="h-24 flex items-end gap-0.5">
+                        {readiness.endurance.trend_data.values.map((value: number, index: number) => {
+                          const allValues = readiness.endurance.trend_data.values;
+                          const maxValue = Math.max(...allValues);
+                          const minValue = Math.min(...allValues);
+                          const range = maxValue - minValue;
+                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
+                          return (
+                            <div key={index} className="flex-1 flex flex-col justify-end">
+                              <div
+                                className="bg-green-400 rounded-t hover:bg-green-500 transition-colors"
+                                style={{ height: `${Math.max(height, 5)}%` }}
+                                title={`${readiness.endurance.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                        <span>{readiness.endurance.trend_data.dates?.[0]}</span>
+                        <span>{readiness.endurance.trend_data.dates?.[readiness.endurance.trend_data.dates.length - 1]}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Race Fitness Trend */}
+                  {readiness.race_fitness?.trend_data?.values && readiness.race_fitness.trend_data.values.length > 0 && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="text-xs font-medium text-gray-700 mb-2">競賽狀態趨勢</div>
+                      <div className="h-24 flex items-end gap-0.5">
+                        {readiness.race_fitness.trend_data.values.map((value: number, index: number) => {
+                          const allValues = readiness.race_fitness.trend_data.values;
+                          const maxValue = Math.max(...allValues);
+                          const minValue = Math.min(...allValues);
+                          const range = maxValue - minValue;
+                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
+                          return (
+                            <div key={index} className="flex-1 flex flex-col justify-end">
+                              <div
+                                className="bg-purple-400 rounded-t hover:bg-purple-500 transition-colors"
+                                style={{ height: `${Math.max(height, 5)}%` }}
+                                title={`${readiness.race_fitness.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                        <span>{readiness.race_fitness.trend_data.dates?.[0]}</span>
+                        <span>{readiness.race_fitness.trend_data.dates?.[readiness.race_fitness.trend_data.dates.length - 1]}</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Training Load Trend */}
-                  {readiness.training_load?.trend_data?.values && (
+                  {readiness.training_load?.trend_data?.values && readiness.training_load.trend_data.values.length > 0 && (
                     <div className="border border-gray-200 rounded-lg p-4">
-                      <div className="text-xs font-medium text-gray-700 mb-2">訓練負荷趨勢 (TSB)</div>
-                      <div className="h-32 flex items-end gap-1">
+                      <div className="text-xs font-medium text-gray-700 mb-2">訓練負荷趨勢</div>
+                      <div className="h-24 flex items-end gap-0.5">
                         {readiness.training_load.trend_data.values.map((value: number, index: number) => {
                           const allValues = readiness.training_load.trend_data.values;
                           const maxValue = Math.max(...allValues);
@@ -878,9 +965,9 @@ export default function UserDetailPage() {
                           return (
                             <div key={index} className="flex-1 flex flex-col justify-end">
                               <div
-                                className="bg-orange-400 rounded-t"
+                                className="bg-orange-400 rounded-t hover:bg-orange-500 transition-colors"
                                 style={{ height: `${Math.max(height, 5)}%` }}
-                                title={`${readiness.training_load.trend_data.dates?.[index]}: ${value}`}
+                                title={`${readiness.training_load.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
                               />
                             </div>
                           );
@@ -892,8 +979,37 @@ export default function UserDetailPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Recovery Trend */}
+                  {readiness.recovery?.trend_data?.values && readiness.recovery.trend_data.values.length > 0 && (
+                    <div className="border border-gray-200 rounded-lg p-4">
+                      <div className="text-xs font-medium text-gray-700 mb-2">恢復狀態趨勢</div>
+                      <div className="h-24 flex items-end gap-0.5">
+                        {readiness.recovery.trend_data.values.map((value: number, index: number) => {
+                          const allValues = readiness.recovery.trend_data.values;
+                          const maxValue = Math.max(...allValues);
+                          const minValue = Math.min(...allValues);
+                          const range = maxValue - minValue;
+                          const height = range > 0 ? ((value - minValue) / range) * 100 : 50;
+                          return (
+                            <div key={index} className="flex-1 flex flex-col justify-end">
+                              <div
+                                className="bg-pink-400 rounded-t hover:bg-pink-500 transition-colors"
+                                style={{ height: `${Math.max(height, 5)}%` }}
+                                title={`${readiness.recovery.trend_data.dates?.[index]}: ${value.toFixed(1)}`}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                        <span>{readiness.recovery.trend_data.dates?.[0]}</span>
+                        <span>{readiness.recovery.trend_data.dates?.[readiness.recovery.trend_data.dates.length - 1]}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           ) : (
             <div className="text-sm text-gray-400">尚無訓練準備度數據</div>
