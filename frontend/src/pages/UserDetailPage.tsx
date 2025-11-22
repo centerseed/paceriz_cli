@@ -400,22 +400,109 @@ export default function UserDetailPage() {
                         <span className="text-xs font-medium text-gray-500">
                           {['週一', '週二', '週三', '週四', '週五', '週六', '週日'][day.day_index - 1] || `Day ${day.day_index}`}
                         </span>
-                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          day.training_type === 'interval' ? 'bg-red-100 text-red-800' :
+                          day.training_type === 'progression' ? 'bg-purple-100 text-purple-800' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
                           {day.training_type === 'easy_run' && '輕鬆跑'}
                           {day.training_type === 'tempo_run' && '節奏跑'}
                           {day.training_type === 'interval_training' && '間歇訓練'}
+                          {day.training_type === 'interval' && '間歇跑'}
                           {day.training_type === 'long_run' && '長距離跑'}
                           {day.training_type === 'recovery_run' && '恢復跑'}
                           {day.training_type === 'rest' && '休息'}
                           {day.training_type === 'combination' && '組合訓練'}
-                          {!['easy_run', 'tempo_run', 'interval_training', 'long_run', 'recovery_run', 'rest', 'combination'].includes(day.training_type) && day.training_type}
+                          {day.training_type === 'progression' && '漸速跑'}
+                          {!['easy_run', 'tempo_run', 'interval_training', 'interval', 'long_run', 'recovery_run', 'rest', 'combination', 'progression'].includes(day.training_type) && day.training_type}
                         </span>
                       </div>
                       <div className="text-sm font-medium text-gray-900 mb-1">{day.day_target || '-'}</div>
 
+                      {/* 間歇訓練 - 顯示工作/恢復段落 */}
+                      {day.training_type === 'interval' && day.training_details && (
+                        <div className="mt-2 space-y-2">
+                          {day.training_details.description && (
+                            <div className="text-xs text-gray-500 mb-2">{day.training_details.description}</div>
+                          )}
+
+                          {/* 工作段 */}
+                          {day.training_details.work && (
+                            <div className="pl-3 border-l-2 border-red-300 bg-red-50 rounded-r py-2 pr-2">
+                              <div className="text-xs font-semibold text-red-900 mb-1">
+                                高強度：
+                                {day.training_details.repeats && <span className="ml-1">× {day.training_details.repeats}</span>}
+                              </div>
+                              {day.training_details.work.description && (
+                                <div className="text-xs text-red-800 mb-1">{day.training_details.work.description}</div>
+                              )}
+                              <div className="flex flex-wrap gap-3 text-xs text-red-700">
+                                {day.training_details.work.distance_km && <span>距離: {day.training_details.work.distance_km} km</span>}
+                                {day.training_details.work.distance_m && <span>距離: {day.training_details.work.distance_m} m</span>}
+                                {day.training_details.work.time_minutes && <span>時間: {day.training_details.work.time_minutes} 分鐘</span>}
+                                {day.training_details.work.pace && <span>配速: {day.training_details.work.pace}</span>}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 恢復段 */}
+                          {day.training_details.recovery && (
+                            <div className="pl-3 border-l-2 border-green-300 bg-green-50 rounded-r py-2 pr-2">
+                              <div className="text-xs font-semibold text-green-900 mb-1">恢復跑：</div>
+                              {day.training_details.recovery.description && (
+                                <div className="text-xs text-green-800 mb-1">{day.training_details.recovery.description}</div>
+                              )}
+                              <div className="flex flex-wrap gap-3 text-xs text-green-700">
+                                {day.training_details.recovery.distance_km && <span>距離: {day.training_details.recovery.distance_km} km</span>}
+                                {day.training_details.recovery.distance_m && <span>距離: {day.training_details.recovery.distance_m} m</span>}
+                                {day.training_details.recovery.time_minutes && <span>時間: {day.training_details.recovery.time_minutes} 分鐘</span>}
+                                {day.training_details.recovery.pace && <span>配速: {day.training_details.recovery.pace}</span>}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 漸進跑 - 顯示分段 */}
+                      {day.training_type === 'progression' && day.training_details?.segments && (
+                        <div className="mt-2 space-y-2">
+                          {day.training_details.description && (
+                            <div className="text-xs text-gray-500 mb-2">{day.training_details.description}</div>
+                          )}
+                          {day.training_details.total_distance_km && (
+                            <div className="text-xs font-medium text-purple-700 mb-2">總距離: {day.training_details.total_distance_km} km</div>
+                          )}
+                          {day.training_details.segments.map((segment: any, segIndex: number) => (
+                            <div key={segIndex} className="pl-3 border-l-2 border-purple-300 bg-purple-50 rounded-r py-2 pr-2">
+                              <div className="text-xs font-medium text-purple-900 mb-1">
+                                階段 {segIndex + 1}
+                              </div>
+                              {segment.description && (
+                                <div className="text-xs text-purple-800 mb-1">{segment.description}</div>
+                              )}
+                              <div className="flex flex-wrap gap-3 text-xs text-purple-700">
+                                {segment.distance_km && <span>距離: {segment.distance_km} km</span>}
+                                {segment.pace && <span>配速: {segment.pace}</span>}
+                              </div>
+                              {segment.heart_rate_range && (
+                                <div className="text-xs text-purple-700 mt-1">
+                                  心率: {segment.heart_rate_range.min}-{segment.heart_rate_range.max} bpm
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       {/* 組合訓練 - 展開 segments */}
                       {day.training_type === 'combination' && day.training_details?.segments && (
                         <div className="mt-2 space-y-2">
+                          {day.training_details.description && (
+                            <div className="text-xs text-gray-500 mb-2">{day.training_details.description}</div>
+                          )}
+                          {day.training_details.total_distance_km && (
+                            <div className="text-xs font-medium text-blue-700 mb-2">總距離: {day.training_details.total_distance_km} km</div>
+                          )}
                           {day.training_details.segments.map((segment: any, segIndex: number) => (
                             <div key={segIndex} className="pl-3 border-l-2 border-blue-200 bg-blue-50 rounded-r py-2 pr-2">
                               <div className="text-xs font-medium text-blue-900 mb-1">
@@ -429,7 +516,7 @@ export default function UserDetailPage() {
                               {segment.description && (
                                 <div className="text-xs text-blue-800 mb-1">{segment.description}</div>
                               )}
-                              <div className="flex gap-3 text-xs text-blue-700">
+                              <div className="flex flex-wrap gap-3 text-xs text-blue-700">
                                 {segment.distance_km && <span>距離: {segment.distance_km} km</span>}
                                 {segment.duration_minutes && <span>時間: {segment.duration_minutes} 分鐘</span>}
                                 {segment.pace && <span>配速: {segment.pace}</span>}
@@ -444,8 +531,8 @@ export default function UserDetailPage() {
                         </div>
                       )}
 
-                      {/* 非組合訓練 - 顯示原有的 training_details */}
-                      {day.training_type !== 'combination' && day.training_details && (
+                      {/* 其他訓練類型 - 顯示基本的 training_details */}
+                      {!['combination', 'progression', 'interval'].includes(day.training_type) && day.training_details && (
                         <div className="space-y-1">
                           {day.training_details.distance_km && (
                             <div className="text-xs text-gray-600">距離: {day.training_details.distance_km} km</div>
