@@ -215,6 +215,22 @@ export const usersApi = {
     const response = await apiClient.get(`/api/v1/admin/users/${uid}/weekly-summary`);
     return response.data;
   },
+
+  // 獲取用戶訓練準備度
+  getReadiness: async (uid: string, date?: string) => {
+    const response = await apiClient.get(`/api/v1/admin/users/${uid}/readiness`, {
+      params: { date }
+    });
+    return response.data;
+  },
+
+  // 獲取用戶訓練準備度歷史
+  getReadinessHistory: async (uid: string, days: number = 28) => {
+    const response = await apiClient.get(`/api/v1/admin/users/${uid}/readiness/history`, {
+      params: { days }
+    });
+    return response.data;
+  },
 };
 
 // 訂閱測試工具相關 API

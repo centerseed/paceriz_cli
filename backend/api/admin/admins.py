@@ -11,18 +11,19 @@ import logging
 import sys
 import os
 
-# 添加 api_service 到 Python path
-API_SERVICE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../api_service'))
-sys.path.insert(0, API_SERVICE_PATH)
+try:
+    from firebase_admin import firestore
+    from utils.firebase_init import init_firebase
 
-from firebase_admin import firestore
-from core.infrastructure.firebase_init import init_firebase
+    # 確保 Firebase 已初始化
+    init_firebase()
+    db = firestore.client()
+except Exception as e:
+    logging.warning(f"Could not initialize Firebase: {e}")
+    db = None
+
 from services.audit_log_service import audit_log_service
 from config.admin_config import SUPER_ADMIN_EMAILS
-
-# 確保 Firebase 已初始化
-init_firebase()
-db = firestore.client()
 
 logger = logging.getLogger(__name__)
 

@@ -20,6 +20,8 @@ export default function UserDetailPage() {
   const [trainingOverview, setTrainingOverview] = useState<any>(null);
   const [weeklyPlan, setWeeklyPlan] = useState<any>(null);
   const [weeklySummary, setWeeklySummary] = useState<any>(null);
+  const [readiness, setReadiness] = useState<any>(null);
+  const [readinessHistory, setReadinessHistory] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [stagesExpanded, setStagesExpanded] = useState(false);
@@ -47,16 +49,20 @@ export default function UserDetailPage() {
     setLoading(true);
     setError('');
     try {
-      const [userResponse, trainingResponse, weeklyResponse, summaryResponse] = await Promise.all([
+      const [userResponse, trainingResponse, weeklyResponse, summaryResponse, readinessResponse, readinessHistoryResponse] = await Promise.all([
         usersApi.get(uid),
         usersApi.getTrainingOverview(uid).catch(() => ({ training_overview: null })),
         usersApi.getWeeklyPlan(uid).catch(() => ({ weekly_plan: null })),
         usersApi.getWeeklySummary(uid).catch(() => ({ weekly_summary: null })),
+        usersApi.getReadiness(uid).catch(() => ({ readiness: null })),
+        usersApi.getReadinessHistory(uid, 28).catch(() => ({ history: [] })),
       ]);
       setUser(userResponse);
       setTrainingOverview(trainingResponse.training_overview);
       setWeeklyPlan(weeklyResponse.weekly_plan);
       setWeeklySummary(summaryResponse.weekly_summary);
+      setReadiness(readinessResponse.readiness);
+      setReadinessHistory(readinessHistoryResponse.history);
     } catch (err: any) {
       setError(err.message || '獲取用戶詳情失敗');
     } finally {
@@ -403,22 +409,109 @@ export default function UserDetailPage() {
                         <span className="text-xs font-medium text-gray-500">
                           {['週一', '週二', '週三', '週四', '週五', '週六', '週日'][day.day_index - 1] || `Day ${day.day_index}`}
                         </span>
-                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-800 rounded">
+                        <span className={`text-xs px-2 py-0.5 rounded ${
+                          day.training_type === 'interval' ? 'bg-red-100 text-red-800' :
+                          day.training_type === 'progression' ? 'bg-purple-100 text-purple-800' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
                           {day.training_type === 'easy_run' && '輕鬆跑'}
                           {day.training_type === 'tempo_run' && '節奏跑'}
                           {day.training_type === 'interval_training' && '間歇訓練'}
+                          {day.training_type === 'interval' && '間歇跑'}
                           {day.training_type === 'long_run' && '長距離跑'}
                           {day.training_type === 'recovery_run' && '恢復跑'}
                           {day.training_type === 'rest' && '休息'}
                           {day.training_type === 'combination' && '組合訓練'}
-                          {!['easy_run', 'tempo_run', 'interval_training', 'long_run', 'recovery_run', 'rest', 'combination'].includes(day.training_type) && day.training_type}
+                          {day.training_type === 'progression' && '漸速跑'}
+                          {!['easy_run', 'tempo_run', 'interval_training', 'interval', 'long_run', 'recovery_run', 'rest', 'combination', 'progression'].includes(day.training_type) && day.training_type}
                         </span>
                       </div>
                       <div className="text-sm font-medium text-gray-900 mb-1">{day.day_target || '-'}</div>
 
+                      {/* 間歇訓練 - 顯示工作/恢復段落 */}
+                      {day.training_type === 'interval' && day.training_details && (
+                        <div className="mt-2 space-y-2">
+                          {day.training_details.description && (
+                            <div className="text-xs text-gray-500 mb-2">{day.training_details.description}</div>
+                          )}
+
+                          {/* 工作段 */}
+                          {day.training_details.work && (
+                            <div className="pl-3 border-l-2 border-red-300 bg-red-50 rounded-r py-2 pr-2">
+                              <div className="text-xs font-semibold text-red-900 mb-1">
+                                高強度：
+                                {day.training_details.repeats && <span className="ml-1">× {day.training_details.repeats}</span>}
+                              </div>
+                              {day.training_details.work.description && (
+                                <div className="text-xs text-red-800 mb-1">{day.training_details.work.description}</div>
+                              )}
+                              <div className="flex flex-wrap gap-3 text-xs text-red-700">
+                                {day.training_details.work.distance_km && <span>距離: {day.training_details.work.distance_km} km</span>}
+                                {day.training_details.work.distance_m && <span>距離: {day.training_details.work.distance_m} m</span>}
+                                {day.training_details.work.time_minutes && <span>時間: {day.training_details.work.time_minutes} 分鐘</span>}
+                                {day.training_details.work.pace && <span>配速: {day.training_details.work.pace}</span>}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 恢復段 */}
+                          {day.training_details.recovery && (
+                            <div className="pl-3 border-l-2 border-green-300 bg-green-50 rounded-r py-2 pr-2">
+                              <div className="text-xs font-semibold text-green-900 mb-1">恢復跑：</div>
+                              {day.training_details.recovery.description && (
+                                <div className="text-xs text-green-800 mb-1">{day.training_details.recovery.description}</div>
+                              )}
+                              <div className="flex flex-wrap gap-3 text-xs text-green-700">
+                                {day.training_details.recovery.distance_km && <span>距離: {day.training_details.recovery.distance_km} km</span>}
+                                {day.training_details.recovery.distance_m && <span>距離: {day.training_details.recovery.distance_m} m</span>}
+                                {day.training_details.recovery.time_minutes && <span>時間: {day.training_details.recovery.time_minutes} 分鐘</span>}
+                                {day.training_details.recovery.pace && <span>配速: {day.training_details.recovery.pace}</span>}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 漸進跑 - 顯示分段 */}
+                      {day.training_type === 'progression' && day.training_details?.segments && (
+                        <div className="mt-2 space-y-2">
+                          {day.training_details.description && (
+                            <div className="text-xs text-gray-500 mb-2">{day.training_details.description}</div>
+                          )}
+                          {day.training_details.total_distance_km && (
+                            <div className="text-xs font-medium text-purple-700 mb-2">總距離: {day.training_details.total_distance_km} km</div>
+                          )}
+                          {day.training_details.segments.map((segment: any, segIndex: number) => (
+                            <div key={segIndex} className="pl-3 border-l-2 border-purple-300 bg-purple-50 rounded-r py-2 pr-2">
+                              <div className="text-xs font-medium text-purple-900 mb-1">
+                                階段 {segIndex + 1}
+                              </div>
+                              {segment.description && (
+                                <div className="text-xs text-purple-800 mb-1">{segment.description}</div>
+                              )}
+                              <div className="flex flex-wrap gap-3 text-xs text-purple-700">
+                                {segment.distance_km && <span>距離: {segment.distance_km} km</span>}
+                                {segment.pace && <span>配速: {segment.pace}</span>}
+                              </div>
+                              {segment.heart_rate_range && (
+                                <div className="text-xs text-purple-700 mt-1">
+                                  心率: {segment.heart_rate_range.min}-{segment.heart_rate_range.max} bpm
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       {/* 組合訓練 - 展開 segments */}
                       {day.training_type === 'combination' && day.training_details?.segments && (
                         <div className="mt-2 space-y-2">
+                          {day.training_details.description && (
+                            <div className="text-xs text-gray-500 mb-2">{day.training_details.description}</div>
+                          )}
+                          {day.training_details.total_distance_km && (
+                            <div className="text-xs font-medium text-blue-700 mb-2">總距離: {day.training_details.total_distance_km} km</div>
+                          )}
                           {day.training_details.segments.map((segment: any, segIndex: number) => (
                             <div key={segIndex} className="pl-3 border-l-2 border-blue-200 bg-blue-50 rounded-r py-2 pr-2">
                               <div className="text-xs font-medium text-blue-900 mb-1">
@@ -432,7 +525,7 @@ export default function UserDetailPage() {
                               {segment.description && (
                                 <div className="text-xs text-blue-800 mb-1">{segment.description}</div>
                               )}
-                              <div className="flex gap-3 text-xs text-blue-700">
+                              <div className="flex flex-wrap gap-3 text-xs text-blue-700">
                                 {segment.distance_km && <span>距離: {segment.distance_km} km</span>}
                                 {segment.duration_minutes && <span>時間: {segment.duration_minutes} 分鐘</span>}
                                 {segment.pace && <span>配速: {segment.pace}</span>}
@@ -447,8 +540,8 @@ export default function UserDetailPage() {
                         </div>
                       )}
 
-                      {/* 非組合訓練 - 顯示原有的 training_details */}
-                      {day.training_type !== 'combination' && day.training_details && (
+                      {/* 其他訓練類型 - 顯示基本的 training_details */}
+                      {!['combination', 'progression', 'interval'].includes(day.training_type) && day.training_details && (
                         <div className="space-y-1">
                           {day.training_details.distance_km && (
                             <div className="text-xs text-gray-600">距離: {day.training_details.distance_km} km</div>
@@ -770,7 +863,335 @@ export default function UserDetailPage() {
             <p className="text-sm text-gray-400">尚無個人最佳記錄</p>
           )}
         </div>
+        {/* 訓練準備度 */}
+        <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Heart className="w-5 h-5 text-red-500" />
+            訓練準備度
+          </h2>
+          {readiness ? (
+            <div className="space-y-6">
+              {/* 當前準備度指標 */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {/* Speed */}
+                {readiness.speed && (
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">速度</div>
+                    <div className="text-2xl font-bold text-blue-900">{readiness.speed.score}</div>
+                    {readiness.speed.trend_data?.direction && (
+                      <div className={`text-xs mt-1 ${
+                        readiness.speed.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.speed.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {readiness.speed.trend_data.direction === 'up' ? '↑' :
+                         readiness.speed.trend_data.direction === 'down' ? '↓' : '→'}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Endurance */}
+                {readiness.endurance && (
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">耐力</div>
+                    <div className="text-2xl font-bold text-green-900">{readiness.endurance.score}</div>
+                    {readiness.endurance.trend_data?.direction && (
+                      <div className={`text-xs mt-1 ${
+                        readiness.endurance.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.endurance.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {readiness.endurance.trend_data.direction === 'up' ? '↑' :
+                         readiness.endurance.trend_data.direction === 'down' ? '↓' : '→'}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Race Fitness */}
+                {readiness.race_fitness && (
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">競賽狀態</div>
+                    <div className="text-2xl font-bold text-purple-900">{readiness.race_fitness.score}</div>
+                    {readiness.race_fitness.trend_data?.direction && (
+                      <div className={`text-xs mt-1 ${
+                        readiness.race_fitness.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.race_fitness.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {readiness.race_fitness.trend_data.direction === 'up' ? '↑' :
+                         readiness.race_fitness.trend_data.direction === 'down' ? '↓' : '→'}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Training Load */}
+                {readiness.training_load && (
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">訓練負荷</div>
+                    <div className="text-2xl font-bold text-orange-900">{readiness.training_load.score}</div>
+                    {readiness.training_load.trend_data?.direction && (
+                      <div className={`text-xs mt-1 ${
+                        readiness.training_load.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.training_load.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {readiness.training_load.trend_data.direction === 'up' ? '↑' :
+                         readiness.training_load.trend_data.direction === 'down' ? '↓' : '→'}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Recovery */}
+                {readiness.recovery && (
+                  <div className="text-center p-4 bg-pink-50 rounded-lg">
+                    <div className="text-xs text-gray-600 mb-1">恢復狀態</div>
+                    <div className="text-2xl font-bold text-pink-900">{readiness.recovery.score}</div>
+                    {readiness.recovery.trend_data?.direction && (
+                      <div className={`text-xs mt-1 ${
+                        readiness.recovery.trend_data.direction === 'up' ? 'text-green-600' :
+                        readiness.recovery.trend_data.direction === 'down' ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        {readiness.recovery.trend_data.direction === 'up' ? '↑' :
+                         readiness.recovery.trend_data.direction === 'down' ? '↓' : '→'}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
+              {/* 預估完賽成績 */}
+              {readiness.race_fitness?.estimated_race_time && (
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-4">預估完賽成績</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                      <div className="text-xs text-purple-600 font-medium mb-1">
+                        {readiness.race_fitness.target_distance_km === 21 ? '半馬' :
+                         readiness.race_fitness.target_distance_km === 42.195 ? '全馬' :
+                         readiness.race_fitness.target_distance_km === 5 ? '5K' :
+                         readiness.race_fitness.target_distance_km === 10 ? '10K' :
+                         `${readiness.race_fitness.target_distance_km}K`} - 預估時間
+                      </div>
+                      <div className="text-2xl font-bold text-purple-900">{readiness.race_fitness.estimated_race_time}</div>
+                    </div>
+                    {readiness.race_fitness.target_race_time && (
+                      <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                        <div className="text-xs text-blue-600 font-medium mb-1">
+                          {readiness.race_fitness.target_distance_km === 21 ? '半馬' :
+                           readiness.race_fitness.target_distance_km === 42.195 ? '全馬' :
+                           readiness.race_fitness.target_distance_km === 5 ? '5K' :
+                           readiness.race_fitness.target_distance_km === 10 ? '10K' :
+                           `${readiness.race_fitness.target_distance_km}K`} - 目標時間
+                        </div>
+                        <div className="text-2xl font-bold text-blue-900">{readiness.race_fitness.target_race_time}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 28天趨勢圖表 */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold text-gray-700">趨勢圖表 (28天)</h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Speed Trend */}
+                  {readiness.speed?.trend_data?.values && readiness.speed.trend_data.values.length > 0 && (() => {
+                    const values = readiness.speed.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          速度趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#3b82f6" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#3b82f6">
+                              <title>{`${readiness.speed.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.speed.trend_data.dates?.[0]}</span>
+                          <span>{readiness.speed.trend_data.dates?.[readiness.speed.trend_data.dates.length - 1]}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Endurance Trend */}
+                  {readiness.endurance?.trend_data?.values && readiness.endurance.trend_data.values.length > 0 && (() => {
+                    const values = readiness.endurance.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          耐力趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#22c55e" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#22c55e">
+                              <title>{`${readiness.endurance.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.endurance.trend_data.dates?.[0]}</span>
+                          <span>{readiness.endurance.trend_data.dates?.[readiness.endurance.trend_data.dates.length - 1]}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Race Fitness Trend */}
+                  {readiness.race_fitness?.trend_data?.values && readiness.race_fitness.trend_data.values.length > 0 && (() => {
+                    const values = readiness.race_fitness.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          競賽狀態趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#a855f7" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#a855f7">
+                              <title>{`${readiness.race_fitness.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.race_fitness.trend_data.dates?.[0]}</span>
+                          <span>{readiness.race_fitness.trend_data.dates?.[readiness.race_fitness.trend_data.dates.length - 1]}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Training Load Trend */}
+                  {readiness.training_load?.trend_data?.values && readiness.training_load.trend_data.values.length > 0 && (() => {
+                    const values = readiness.training_load.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          訓練負荷趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#f97316" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#f97316">
+                              <title>{`${readiness.training_load.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.training_load.trend_data.dates?.[0]}</span>
+                          <span>{readiness.training_load.trend_data.dates?.[readiness.training_load.trend_data.dates.length - 1]}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Recovery Trend */}
+                  {readiness.recovery?.trend_data?.values && readiness.recovery.trend_data.values.length > 0 && (() => {
+                    const values = readiness.recovery.trend_data.values;
+                    const maxValue = Math.max(...values);
+                    const minValue = Math.min(...values);
+                    const range = maxValue - minValue || 1;
+                    const width = 400;
+                    const height = 120;
+                    const padding = 10;
+
+                    const points = values.map((value: number, index: number) => {
+                      const x = padding + (index / (values.length - 1)) * (width - padding * 2);
+                      const y = padding + (1 - (value - minValue) / range) * (height - padding * 2);
+                      return { x, y, value };
+                    });
+
+                    const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+
+                    return (
+                      <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                        <div className="text-xs font-medium text-gray-700 mb-2">
+                          恢復狀態趨勢 <span className="text-gray-400">({values.length}天)</span>
+                        </div>
+                        <svg width={width} height={height} className="w-full" viewBox={`0 0 ${width} ${height}`}>
+                          <path d={pathD} fill="none" stroke="#ec4899" strokeWidth="2" />
+                          {points.map((p, i) => (
+                            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#ec4899">
+                              <title>{`${readiness.recovery.trend_data.dates?.[i]}: ${p.value.toFixed(1)}`}</title>
+                            </circle>
+                          ))}
+                        </svg>
+                        <div className="text-xs text-gray-500 mt-2 flex justify-between">
+                          <span>{readiness.recovery.trend_data.dates?.[0]}</span>
+                          <span>{readiness.recovery.trend_data.dates?.[readiness.recovery.trend_data.dates.length - 1]}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-400">尚無訓練準備度數據</div>
+          )}
+        </div>
         {/* 訂閱測試工具 */}
         <div className="mt-6">
           <SubscriptionTools uid={user.uid} onSuccess={fetchUser} />

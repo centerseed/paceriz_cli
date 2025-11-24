@@ -15,25 +15,27 @@ import logging
 import sys
 import os
 
-# 添加 api_service 到 Python path
-API_SERVICE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../api_service'))
-sys.path.insert(0, API_SERVICE_PATH)
-
 try:
-    from domains.subscription.subscription_service import subscription_service
-    from data_models.subscription_models import InviteCode, InviteCodeUsage
     from firebase_admin import firestore
-    from core.infrastructure.firebase_init import init_firebase
+    from utils.firebase_init import init_firebase
 
     # 確保 Firebase 已初始化
     init_firebase()
     db = firestore.client()
+except Exception as e:
+    logging.warning(f"Could not initialize Firebase: {e}")
+    db = None
+
+# Try to import api_service modules (optional dependencies)
+try:
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../api_service')))
+    from domains.subscription.subscription_service import subscription_service
+    from data_models.subscription_models import InviteCode, InviteCodeUsage
 except ImportError as e:
     logging.warning(f"Could not import api_service modules: {e}")
     subscription_service = None
     InviteCode = None
     InviteCodeUsage = None
-    db = None
 
 from middleware.admin_auth import require_admin, get_admin_info
 from services.audit_log_service import audit_log_service
@@ -245,8 +247,8 @@ def get_invite_code_usages(code: str):
         if not invite_code:
             return jsonify({'error': 'Invite code not found'}), 404
 
-        # 查詢使用記錄
-        query = db.collection('invite_code_usages').where('code', '==', code.upper()).order_by('used_at', direction=firestore.Query.DESCENDING)
+        # 查詢使用記錄（限制最多返回100筆）
+        query = db.collection('invite_code_usages').where('code', '==', code.upper()).order_by('used_at', direction=firestore.Query.DESCENDING).limit(100)
         docs = query.stream()
 
         usages = []
