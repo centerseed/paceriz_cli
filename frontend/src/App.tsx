@@ -11,6 +11,8 @@ import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import UsersPage from './pages/UsersPage';
 import UserDetailPage from './pages/UserDetailPage';
+import WorkoutListPage from './pages/WorkoutListPage';
+import WorkoutDetailPage from './pages/WorkoutDetailPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
 import SubscriptionDetailPage from './pages/SubscriptionDetailPage';
 import InviteCodesPage from './pages/InviteCodesPage';
@@ -167,6 +169,26 @@ function AppRoutes() {
               <ProtectedRoute>
                 <Layout>
                   <UserDetailPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users/:uid/workouts"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <WorkoutListPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users/:uid/workouts/:provider/:activityId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <WorkoutDetailPage />
                 </Layout>
               </ProtectedRoute>
             }

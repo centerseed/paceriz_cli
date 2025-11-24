@@ -193,19 +193,28 @@ export default function UserDetailPage() {
           返回用戶列表
         </button>
 
-        <div className="flex items-center gap-4">
-          {user.photo_url ? (
-            <img src={user.photo_url} alt={user.display_name} className="w-16 h-16 rounded-full" />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-              <UserIcon className="w-8 h-8 text-gray-400" />
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {user.photo_url ? (
+              <img src={user.photo_url} alt={user.display_name} className="w-16 h-16 rounded-full" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                <UserIcon className="w-8 h-8 text-gray-400" />
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{user.display_name || '未設定名稱'}</h1>
+              <p className="text-gray-600">{user.email}</p>
+              <p className="text-xs text-gray-500">UID: {uid}</p>
             </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{user.display_name || '未設定名稱'}</h1>
-            <p className="text-gray-600">{user.email}</p>
-            <p className="text-xs text-gray-500">UID: {uid}</p>
           </div>
+          <button
+            onClick={() => navigate(`/users/${uid}/workouts`)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <Activity className="w-4 h-4" />
+            訓練記錄
+          </button>
         </div>
       </div>
 

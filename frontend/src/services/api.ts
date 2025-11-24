@@ -277,6 +277,26 @@ export const llmMetaApi = {
   },
 };
 
+// Workout 訓練記錄相關 API
+export const workoutApi = {
+  // 獲取用戶的訓練記錄索引列表
+  getWorkoutIndex: async (uid: string, params?: {
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+    provider?: string;
+  }) => {
+    const response = await apiClient.get(`/api/v1/admin/users/${uid}/workouts/index`, { params });
+    return response.data;
+  },
+
+  // 獲取特定訓練的詳細數據
+  getWorkoutDetail: async (uid: string, provider: string, activityId: string) => {
+    const response = await apiClient.get(`/api/v1/admin/users/${uid}/workouts/${provider}/${activityId}`);
+    return response.data;
+  },
+};
+
 // Apple IAP 測試相關 API
 export const iapTestApi = {
   // 設置 Mock 模式

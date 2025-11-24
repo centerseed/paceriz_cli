@@ -371,3 +371,120 @@ def get_user_weekly_summary(uid: str):
     except Exception as e:
         logger.error(f"Error getting weekly summary for user {uid}: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
+
+
+@admin_users_bp.route('/<uid>/workouts/index', methods=['GET'])
+@require_admin
+def get_user_workout_index(uid: str):
+    """
+    獲取用戶的訓練記錄索引列表
+
+    Args:
+        uid: 用戶 UID
+
+    Query Parameters:
+        - limit: 最多返回的記錄數（默認 50，最大 200）
+        - start_date: 開始日期 (YYYY-MM-DD)
+        - end_date: 結束日期 (YYYY-MM-DD)
+        - provider: 篩選來源 (strava, garmin, apple_health)
+
+    Returns:
+        {
+            "workouts": [...],
+            "total": 100
+        }
+    """
+    if db is None:
+        return jsonify({'error': 'Service not available'}), 503
+
+    try:
+        # 獲取查詢參數
+        limit = min(int(request.args.get('limit', 50)), 200)
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        provider = request.args.get('provider')
+
+        # 查詢 workouts_v2_index sub-collection
+        workouts_ref = db.collection('users').document(uid).collection('workouts_v2_index')
+
+        # 應用篩選條件
+        query = workouts_ref
+
+        if provider:
+            query = query.where('provider', '==', provider)
+
+        if start_date:
+            from datetime import datetime
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            query = query.where('start_time_utc', '>=', start_dt)
+
+        if end_date:
+            from datetime import datetime
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+            query = query.where('start_time_utc', '<=', end_dt)
+
+        # 按開始時間降序排列
+        query = query.order_by('start_time_utc', direction=firestore.Query.DESCENDING)
+        query = query.limit(limit)
+
+        # 執行查詢
+        docs = query.stream()
+        workouts = []
+
+        for doc in docs:
+            workout_data = doc.to_dict()
+            workout_data['index_id'] = doc.id
+            workouts.append(workout_data)
+
+        return jsonify({
+            'workouts': workouts,
+            'total': len(workouts)
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error getting workout index for user {uid}: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@admin_users_bp.route('/<uid>/workouts/<provider>/<activity_id>', methods=['GET'])
+@require_admin
+def get_user_workout_detail(uid: str, provider: str, activity_id: str):
+    """
+    獲取特定訓練的詳細數據
+
+    Args:
+        uid: 用戶 UID
+        provider: 數據來源 (strava, garmin, apple_health)
+        activity_id: 活動 ID
+
+    Returns:
+        完整的訓練數據，包括 laps 等詳細信息
+    """
+    if db is None:
+        return jsonify({'error': 'Service not available'}), 503
+
+    try:
+        # 查詢 workouts_v2 路徑：users/{uid}/workouts_v2/providers/{provider}/{activity_id}
+        workout_ref = (db.collection('users')
+                      .document(uid)
+                      .collection('workouts_v2')
+                      .document('providers')
+                      .collection(provider)
+                      .document(activity_id))
+
+        workout_doc = workout_ref.get()
+
+        if not workout_doc.exists:
+            return jsonify({'error': 'Workout not found'}), 404
+
+        workout_data = workout_doc.to_dict()
+        workout_data['activity_id'] = activity_id
+        workout_data['provider'] = provider
+
+        return jsonify({
+            'workout': workout_data
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error getting workout detail for user {uid}, provider {provider}, activity {activity_id}: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
